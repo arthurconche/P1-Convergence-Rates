@@ -1,0 +1,127 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\ip}[2]{\left\langle #1, #2 \right\rangle}
+
+\title{Convergence Rates of First-Order Methods:\\ Proofs and Numerical Experiments}
+\author{Arthur Conche\\ M2 MMAS, Universit\'e Paris Cit\'e}
+\date{Working draft --- \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report studies the convergence of first-order optimization methods (gradient descent, Nesterov's accelerated gradient and stochastic gradient descent) for smooth functions. For each method we prove the classical convergence rate under convexity, strong convexity or the Polyak--{\L}ojasiewicz condition, and we compare these theoretical bounds with numerical experiments. \emph{[Draft: to be completed.]}
+\end{abstract}
+
+\section{Introduction}
+\emph{[To be written: motivation, question studied, contributions, outline.]}
+
+\section{Setting and assumptions}
+We consider the unconstrained problem
+\[
+\min_{x \in \R^d} f(x),
+\]
+where $f : \R^d \to \R$ is differentiable, and we denote by $f^\ast = \inf f$ and by $x^\ast$ a minimizer when one exists.
+
+\begin{definition}[$L$-smoothness]
+Let $L > 0$. A differentiable function $f : \R^d \to \R$ is \emph{$L$-smooth} if its gradient is $L$-Lipschitz:
+\[
+\norm{\nabla f(x) - \nabla f(y)} \le L \norm{x - y} \qquad \text{for all } x, y \in \R^d.
+\]
+\end{definition}
+
+\emph{[To add: convexity, $\mu$-strong convexity, condition number $\kappa = L/\mu$, Polyak--{\L}ojasiewicz condition.]}
+
+\section{Preliminary results}
+
+\begin{lemma}[Descent lemma]\label{lem:descent}
+Let $f : \R^d \to \R$ be differentiable and $L$-smooth. Then for all $x, y \in \R^d$,
+\[
+f(y) \le f(x) + \ip{\nabla f(x)}{y - x} + \frac{L}{2}\norm{y - x}^2 .
+\]
+\end{lemma}
+
+\begin{proof}
+Since $\nabla f$ is $L$-Lipschitz, it is continuous, hence $f$ is of class $C^1$. Fix $x, y \in \R^d$ and set $\varphi(t) = f(x + t(y - x))$ for $t \in [0,1]$. The function $\varphi$ is $C^1$ with $\varphi'(t) = \ip{\nabla f(x + t(y-x))}{y - x}$, so by the fundamental theorem of calculus,
+\[
+f(y) - f(x) = \varphi(1) - \varphi(0) = \int_0^1 \ip{\nabla f(x + t(y-x))}{y - x} \, dt .
+\]
+Since $\int_0^1 \ip{\nabla f(x)}{y - x}\, dt = \ip{\nabla f(x)}{y - x}$, we obtain
+\[
+f(y) - f(x) - \ip{\nabla f(x)}{y - x} = \int_0^1 \ip{\nabla f(x + t(y-x)) - \nabla f(x)}{y - x} \, dt .
+\]
+By the Cauchy--Schwarz inequality, then $L$-smoothness,
+\begin{align*}
+\int_0^1 \ip{\nabla f(x + t(y-x)) - \nabla f(x)}{y - x} \, dt
+&\le \int_0^1 \norm{\nabla f(x + t(y-x)) - \nabla f(x)} \, \norm{y - x} \, dt \\
+&\le \int_0^1 L \norm{t(y - x)} \, \norm{y - x} \, dt \\
+&= L \norm{y - x}^2 \int_0^1 t \, dt \qquad (\text{since } t \ge 0)\\
+&= \frac{L}{2} \norm{y - x}^2 ,
+\end{align*}
+which gives the result.
+\end{proof}
+
+\begin{remark}
+Convexity is not used in the proof: the descent lemma holds for every $L$-smooth function. This is what allows the analysis of gradient descent for non-convex functions satisfying the Polyak--{\L}ojasiewicz condition (Section~\ref{sec:pl}).
+\end{remark}
+
+\begin{remark}
+Since the Cauchy--Schwarz inequality bounds the absolute value of the integrand, the same argument gives the two-sided bound
+\[
+\left| f(y) - f(x) - \ip{\nabla f(x)}{y - x} \right| \le \frac{L}{2}\norm{y - x}^2 \qquad \text{for all } x, y \in \R^d.
+\]
+\end{remark}
+
+\begin{corollary}[Sufficient decrease]
+\emph{[To prove.]} If $f$ is $L$-smooth and $x^+ = x - \frac{1}{L}\nabla f(x)$, then
+\[
+f(x^+) \le f(x) - \frac{1}{2L}\norm{\nabla f(x)}^2 .
+\]
+\end{corollary}
+
+\section{Gradient descent}
+\subsection{Convex case}
+\emph{[R1: $f(x_k) - f^\ast \le \dfrac{L\norm{x_0 - x^\ast}^2}{2k}$.]}
+\subsection{Strongly convex case}
+\emph{[R2: $\norm{x_k - x^\ast}^2 \le (1 - 1/\kappa)^k \norm{x_0 - x^\ast}^2$.]}
+\subsection{Polyak--{\L}ojasiewicz condition}\label{sec:pl}
+\emph{[R4: linear rate without convexity.]}
+
+\section{Nesterov's accelerated gradient}
+\emph{[R3: $O(1/k^2)$ via a Lyapunov function; $(1 - 1/\sqrt{\kappa})^k$ in the strongly convex case; lower bound; ODE interpretation.]}
+
+\section{Stochastic gradient descent}
+\emph{[R5: constant step size and noise floor; decreasing step size and $O(1/k)$ rate.]}
+
+\section{Numerical experiments}
+\emph{[Quadratics with controlled $\kappa$; logistic regression; non-convex PL example; SGD on least squares; comparison with Adam.]}
+
+\section{Discussion}
+\emph{[Where the bounds are tight, where they are pessimistic, and why.]}
+
+\begin{thebibliography}{9}
+\bibitem{garrigos} G.~Garrigos and R.~M.~Gower. \emph{Handbook of Convergence Theorems for (Stochastic) Gradient Methods}. arXiv:2301.11235, 2023.
+\bibitem{bubeck} S.~Bubeck. \emph{Convex Optimization: Algorithms and Complexity}. Foundations and Trends in Machine Learning, 2015.
+\bibitem{nesterov} Y.~Nesterov. \emph{Lectures on Convex Optimization}. Springer, 2nd edition, 2018.
+\bibitem{karimi} H.~Karimi, J.~Nutini and M.~Schmidt. Linear convergence of gradient and proximal-gradient methods under the Polyak--{\L}ojasiewicz condition. \emph{ECML PKDD}, 2016.
+\bibitem{su} W.~Su, S.~Boyd and E.~J.~Cand\`es. A differential equation for modeling Nesterov's accelerated gradient method. \emph{NeurIPS}, 2014.
+\end{thebibliography}
+
+\end{document}
