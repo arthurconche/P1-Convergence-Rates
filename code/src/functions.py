@@ -1,17 +1,17 @@
 import numpy as np
 
-def A_drawing(n, mu:float, L:float, rng):
+def A_drawing(d, mu:float, L:float, rng):
     """
-    Returns a "random" symmetric, definite positive, n*n matrix A with eigenvalues in [mu, L]
+    Returns a "random" symmetric, definite positive, d*d matrix A with eigenvalues in [mu, L]
     """
-    if n<2:
+    if d<2:
         raise ValueError("n needs to be >= 2")
     
-    eigenvalues = mu+(L-mu)*rng.random(n-2)       # eigenvalues tirage
+    eigenvalues = mu+(L-mu)*rng.random(d-2)       # eigenvalues tirage
     eigenvalues = np.append(eigenvalues, [mu,L])
     D = np.diag(eigenvalues)
 
-    gauss_mat = rng.standard_normal((n, n))
+    gauss_mat = rng.standard_normal((d, d))
     Q,R = np.linalg.qr(gauss_mat)
     A = Q @ D @ Q.T                                 # A construction
 
@@ -19,22 +19,27 @@ def A_drawing(n, mu:float, L:float, rng):
 
 def quadratic(X, A):
     """
-    Computes the quadratic operator 1/2 * x.T @ A @ x.
+    Computes the quadratic operator 1/2 * X.T @ A @ X.
+    X : np.array (d,) or (N,d)
+    Output : float64 or array (N,)
     """
     return (1/2 * X * (X @ A)).sum(axis=-1)
 
 def grad_quad(X, A):
     """
-    Return gradient for quadratic 1/2 * x.T @ A @ x function.
-    As A is symmetric, A.T = A
+    Return gradient for quadratic 1/2 * X.T @ A @ X function.
+    A is supposed symmetric.
+    X : np.array (d,) or (N,d)
+    Output : np.array (d,) or (N,d)
+
     """
     return X @ A
 
 def numerical_grad(f,x, eps=1e-6):
-    n=x.size
-    df=np.zeros(n)
-    ens = np.eye(n)
-    for i in range(n):
+    d=x.size
+    df=np.zeros(d)
+    ens = np.eye(d)
+    for i in range(d):
         en=ens[i,:]
         df[i]=(f(x+eps*en)-f(x-eps*en))/(2*eps)
 

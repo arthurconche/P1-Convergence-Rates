@@ -10,6 +10,7 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \theoremstyle{remark}
@@ -89,14 +90,86 @@ Since the Cauchy--Schwarz inequality bounds the absolute value of the integrand,
 \]
 \end{remark}
 
-\begin{corollary}[Sufficient decrease]
-\emph{[To prove.]} If $f$ is $L$-smooth and $x^+ = x - \frac{1}{L}\nabla f(x)$, then
+\begin{corollary}[Sufficient decrease]\label{cor:sufficient}
+Let $f : \R^d \to \R$ be differentiable and $L$-smooth. For every $x \in \R^d$, the gradient step $x^+ = x - \frac{1}{L}\nabla f(x)$ satisfies
 \[
 f(x^+) \le f(x) - \frac{1}{2L}\norm{\nabla f(x)}^2 .
 \]
 \end{corollary}
 
+\begin{proof}
+Applying Lemma~\ref{lem:descent} with $y = x^+$, so that $x^+ - x = -\frac{1}{L}\nabla f(x)$, we get
+\begin{align*}
+f(x^+) &\le f(x) + \ip{\nabla f(x)}{-\tfrac{1}{L}\nabla f(x)} + \frac{L}{2}\norm{-\tfrac{1}{L}\nabla f(x)}^2 \\
+&= f(x) - \frac{1}{L}\norm{\nabla f(x)}^2 + \frac{L}{2L^2}\norm{\nabla f(x)}^2 \\
+&= f(x) - \frac{1}{2L}\norm{\nabla f(x)}^2 .
+\end{align*}
+\end{proof}
+
+\begin{remark}
+In particular, each gradient step with step size $1/L$ decreases $f$, strictly as long as $\nabla f(x) \neq 0$. As for Lemma~\ref{lem:descent}, convexity is not needed. Iterating the inequality along the gradient descent sequence $x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k)$ gives the starting point of all the convergence proofs of Section~4.
+\end{remark}
+
 \section{Gradient descent}
+Throughout this section, $(x_k)_{k \ge 0}$ denotes the gradient descent sequence with step size $1/L$:
+\[
+x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k), \qquad k \ge 0.
+\]
+
+\subsection{The quadratic case: how tight is the sufficient decrease?}\label{sec:quadratic}
+Let $A \in \mathcal{S}_d(\R)$ be symmetric positive definite, with smallest eigenvalue $\mu > 0$ and largest eigenvalue $L$, and let
+\[
+f(x) = \frac12 x^\top A x, \qquad \nabla f(x) = Ax .
+\]
+Then $f$ is $L$-smooth and $\mu$-strongly convex, with $x^\ast = 0$ and $f^\ast = 0$. To measure how much of the guaranteed decrease of Corollary~\ref{cor:sufficient} is actually achieved, we define, whenever $\nabla f(x_k) \neq 0$,
+\[
+r_k = \frac{f(x_k) - f(x_{k+1})}{\frac{1}{2L}\norm{\nabla f(x_k)}^2} .
+\]
+Corollary~\ref{cor:sufficient} states exactly that $r_k \ge 1$.
+
+\begin{proposition}\label{prop:rk}
+For every $k \ge 0$ such that $x_k \neq 0$,
+\[
+r_k = 2 - \frac{\ip{g_k}{A g_k}}{L \norm{g_k}^2} \qquad \text{where } g_k = \nabla f(x_k) = A x_k,
+\]
+and consequently
+\[
+1 \le r_k \le 2 - \frac{\mu}{L} = 2 - \frac{1}{\kappa}.
+\]
+\end{proposition}
+
+\begin{proof}
+Since $A$ is invertible, $x_k \neq 0$ implies $g_k \neq 0$, so $r_k$ is well defined. Write $x = x_k$ and $g = g_k = Ax$, so that $x_{k+1} = x - \frac{1}{L} g$.
+
+\emph{Exact expression.} By definition of $r_k$ and of $f$,
+\[
+r_k = \frac{2L}{\norm{g}^2}\Big(\tfrac12 x^\top A x - \tfrac12 (x - \tfrac1L g)^\top A (x - \tfrac1L g)\Big)
+= \frac{L}{\norm{g}^2}\Big(\ip{x}{Ax} - \ip{x - \tfrac1L g}{Ax - \tfrac1L Ag}\Big).
+\]
+Expanding the second inner product and using $Ax = g$,
+\[
+\ip{x - \tfrac1L g}{g - \tfrac1L Ag} = \ip{x}{g} - \frac1L \ip{x}{Ag} - \frac1L \ip{g}{g} + \frac{1}{L^2}\ip{g}{Ag}.
+\]
+Since $A$ is symmetric, $\ip{x}{Ag} = \ip{Ax}{g} = \norm{g}^2$, and $\ip{x}{Ax} = \ip{x}{g}$. Therefore
+\[
+r_k = \frac{L}{\norm{g}^2}\Big(\frac{2}{L}\norm{g}^2 - \frac{1}{L^2}\ip{g}{Ag}\Big) = 2 - \frac{\ip{g}{Ag}}{L\norm{g}^2}.
+\]
+
+\emph{Bounds.} By the spectral theorem, $A$ is diagonalizable in an orthonormal basis $(e_1, \dots, e_d)$ of eigenvectors, with eigenvalues $\lambda_1, \dots, \lambda_d \in [\mu, L]$. Writing $g = \sum_{i=1}^d \ip{g}{e_i} e_i$, we get $Ag = \sum_{i=1}^d \lambda_i \ip{g}{e_i} e_i$, hence
+\[
+\ip{g}{Ag} = \sum_{i=1}^d \lambda_i \ip{g}{e_i}^2 .
+\]
+Since $\mu \le \lambda_i \le L$ and $\sum_{i=1}^d \ip{g}{e_i}^2 = \norm{g}^2$ (Parseval's identity in an orthonormal basis),
+\[
+\mu \norm{g}^2 \le \ip{g}{Ag} \le L \norm{g}^2, \qquad\text{i.e.}\qquad \frac{\ip{g}{Ag}}{L\norm{g}^2} \in \Big[\frac{\mu}{L}, 1\Big].
+\]
+Plugging this into the exact expression gives $1 \le r_k \le 2 - \frac{\mu}{L}$.
+\end{proof}
+
+\begin{remark}
+The quantity $\ip{g}{Ag}/\norm{g}^2$ is the Rayleigh quotient of $A$ at $g$. The lower bound $r_k = 1$ is attained when $g_k$ is an eigenvector for $L$: the sufficient decrease inequality is then tight. The upper bound $2 - 1/\kappa$ is attained when $g_k$ is an eigenvector for $\mu$. Along gradient descent, the components of $x_k$ along the eigenvector $e_i$ are multiplied by $(1 - \lambda_i/L)$ at each step, so the slowest direction (eigenvalue $\mu$) dominates for large $k$, and one expects $r_k \to 2 - 1/\kappa$. This is what we observe numerically (Section~\ref{sec:experiments}).
+\end{remark}
+
 \subsection{Convex case}
 \emph{[R1: $f(x_k) - f^\ast \le \dfrac{L\norm{x_0 - x^\ast}^2}{2k}$.]}
 \subsection{Strongly convex case}
@@ -110,7 +183,7 @@ f(x^+) \le f(x) - \frac{1}{2L}\norm{\nabla f(x)}^2 .
 \section{Stochastic gradient descent}
 \emph{[R5: constant step size and noise floor; decreasing step size and $O(1/k)$ rate.]}
 
-\section{Numerical experiments}
+\section{Numerical experiments}\label{sec:experiments}
 \emph{[Quadratics with controlled $\kappa$; logistic regression; non-convex PL example; SGD on least squares; comparison with Adam.]}
 
 \section{Discussion}
