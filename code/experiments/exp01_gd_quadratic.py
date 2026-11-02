@@ -42,9 +42,9 @@ def run_gd_quadratic(kappa, d, n_iter, rng):
 
 # fig1a 01a - rks computation + plot
 
-fig1a, ax1a = plt.subplots(1, len(kappas), figsize=(12,3), sharey=True)
+fig1a, ax1a = plt.subplots(1, len(kappas), figsize=(9,2.8), sharey=True)
 
-fig1b, ax1b = plt.subplots(1, len(kappas), figsize=(12,3), sharey=True)
+fig1b, ax1b = plt.subplots(1, len(kappas), figsize=(9,2.8), sharey=True)
 ks = np.arange(n_iter)
 
 for i,kappa in enumerate(kappas):

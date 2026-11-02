@@ -4,6 +4,7 @@
 \usepackage{lmodern}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \hypersetup{colorlinks=false,pdfborder={0 0 0}}
 
@@ -184,7 +185,57 @@ The quantity $\ip{g}{Ag}/\norm{g}^2$ is the Rayleigh quotient of $A$ at $g$. The
 \emph{[R5: constant step size and noise floor; decreasing step size and $O(1/k)$ rate.]}
 
 \section{Numerical experiments}\label{sec:experiments}
-\emph{[Quadratics with controlled $\kappa$; logistic regression; non-convex PL example; SGD on least squares; comparison with Adam.]}
+
+\subsection{Gradient descent on quadratics}\label{sec:exp-quadratic}
+
+\paragraph{Setting.}
+We consider the quadratic $f(x) = \frac12 x^\top A x$ of Section~\ref{sec:quadratic} in dimension $d = 100$, with $\mu = 1$ and $L = \kappa$ for $\kappa \in \{10, 100, 1000\}$. The matrix $A$ is built as $A = Q D Q^\top$, where $D$ is diagonal with entries $\mu$, $L$ and $d-2$ values drawn uniformly in $[\mu, L]$, and $Q$ is the orthogonal factor of the QR factorization of a $d \times d$ matrix with i.i.d.\ standard Gaussian entries. By construction, the smallest and largest eigenvalues of $A$ are exactly $\mu$ and $L$. The starting point $x_0$ is a standard Gaussian vector, and we run $5000$ iterations of gradient descent with step size $1/L$. Since $f^\star = 0$, the optimality gap is $f(x_k)$ itself. Iterations with $f(x_k) < 10^{-12}$ are discarded from the plots and the statistics below: at that level, the differences $f(x_k) - f(x_{k+1})$ are dominated by floating-point rounding errors. All random quantities are drawn from a single generator with a fixed seed, and the figures are produced by the script \texttt{code/experiments/exp01\_gd\_quadratic.py}. Before the experiment, the gradient $\nabla f(x) = Ax$ was checked against central finite differences (maximal relative error of order $10^{-10}$).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../code/figures/fig01a_rk.pdf}
+\caption{Ratio $r_k$ between the actual decrease $f(x_k) - f(x_{k+1})$ and the decrease $\frac{1}{2L}\norm{\nabla f(x_k)}^2$ guaranteed by Corollary~\ref{cor:sufficient}, for $\kappa \in \{10, 100, 1000\}$ (logarithmic horizontal axis). Dashed line: lower bound $1$ (Corollary~\ref{cor:sufficient}). Dotted line: upper bound $2 - 1/\kappa$ (Proposition~\ref{prop:rk}).}
+\label{fig:rk}
+\end{figure}
+
+\paragraph{Tightness of the sufficient decrease (Figure~\ref{fig:rk}).}
+For the three values of $\kappa$, the ratio $r_k$ stays in the interval $[1, 2 - 1/\kappa]$ predicted by Proposition~\ref{prop:rk}. It starts at $r_0 \approx 1.25$ for $\kappa = 10$ and $\kappa = 100$, and $r_0 \approx 1.20$ for $\kappa = 1000$: at the first iterations, the guaranteed decrease of Corollary~\ref{cor:sufficient} is close to the actual one. Then $r_k$ increases towards its upper bound: the maximal observed values are $1.8971$, $1.9900$ and $1.9990$, for upper bounds $1.9$, $1.99$ and $1.999$. For $\kappa = 10$, the remaining gap of order $3 \times 10^{-3}$ is due to the eigenvalue $\lambda_2 \approx 1.03$, very close to $\mu$, whose component has not yet vanished when the run is stopped by the threshold $10^{-12}$ (after $130$ iterations). This is the behaviour anticipated in the remark following Proposition~\ref{prop:rk}: the components of $x_k$ along eigenvectors with large eigenvalues are damped quickly, so that $g_k = A x_k$ aligns with the eigenvectors of the smallest eigenvalues, and the Rayleigh quotient $\ip{g_k}{Ag_k}/\norm{g_k}^2$ decreases towards $\mu$. For $\kappa = 1000$, the convergence to $2 - 1/\kappa$ goes through an intermediate regime: the next smallest eigenvalue is $\lambda_2 \approx 6.73$, and the component along its eigenvector only decays by a factor $(1 - \lambda_2/L)/(1 - \mu/L)$ per step relative to the slowest one, that is about $0.57\%$. Accordingly, $r_k \approx 1.992$ at $k = 100$, close to $2 - \lambda_2/L \approx 1.993$, and $r_k$ only reaches $1.9988$ around $k = 1000$. 
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../code/figures/fig01b_gap.pdf}
+\caption{Optimality gap $f(x_k) - f^\star$ of gradient descent with step size $1/L$ (logarithmic vertical axis), for $\kappa \in \{10, 100, 1000\}$. Dashed line: upper bound $(1 - 1/\kappa)^k \big(f(x_0) - f^\star\big)$.}
+\label{fig:gap}
+\end{figure}
+
+\paragraph{Convergence rate (Figure~\ref{fig:gap}).}
+The measured gap always stays below the bound $(1 - 1/\kappa)^k (f(x_0) - f^\star)$. After a short initial phase, in which the components along large eigenvalues vanish, each curve is a straight line in logarithmic scale: the convergence is linear, and its rate deteriorates as $\kappa$ grows. However, the measured slope is about twice the slope of the bound. Table~\ref{tab:slopes} compares the slope of $\log f(x_k)$, fitted by least squares on the second half of the plotted iterations, with the slope $\log(1 - 1/\kappa)$ of the bound. For instance, for $\kappa = 10$, the gap reaches about $10^{-12}$ after $130$ iterations, while the bound is still of order $4 \times 10^{-4}$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{cccc}
+\hline
+$\kappa$ & measured slope & $\log(1 - 1/\kappa)$ & ratio \\
+\hline
+$10$ & $-0.2186$ & $-0.1054$ & $2.07$ \\
+$100$ & $-0.0201$ & $-0.0101$ & $2.00$ \\
+$1000$ & $-0.0020$ & $-0.0010$ & $2.00$ \\
+\hline
+\end{tabular}
+\caption{Slope of $\log\big(f(x_k) - f^\star\big)$ as a function of $k$, compared with the slope of the theoretical bound.}
+\label{tab:slopes}
+\end{table}
+
+This factor $2$ has a simple heuristic explanation. Writing $x_k = \sum_i c_i^{(k)} e_i$ in an orthonormal eigenbasis of $A$, each component satisfies $c_i^{(k)} = (1 - \lambda_i/L)^k c_i^{(0)}$, so that
+\[
+f(x_k) = \frac12 \sum_{i=1}^d \lambda_i \Big(1 - \frac{\lambda_i}{L}\Big)^{2k} \big(c_i^{(0)}\big)^2 ,
+\]
+which, for large $k$, behaves like $C\,(1 - 1/\kappa)^{2k}$ as soon as $c_1^{(0)} \neq 0$. The exponent $2k$ comes from the fact that $f$ is quadratic in $x$; the general bound, which only uses smoothness and strong convexity, loses this square. A rigorous statement is left for a forthcoming proposition.
+
+\paragraph{Conclusion.}
+On quadratics, the theory correctly predicts the qualitative behaviour of gradient descent: the sufficient decrease holds at every step, the convergence is linear and slows down as $\kappa$ grows. Quantitatively, Proposition~\ref{prop:rk} describes the ratio $r_k$ exactly, whereas the general bound on $f(x_k) - f^\star$ is pessimistic by a factor $2$ in the exponent. Whether this pessimism persists in the worst case over all $L$-smooth and $\mu$-strongly convex functions is a natural question, which can be investigated with performance estimation techniques.
+
+\emph{[Further experiments: logistic regression; non-convex PL example; SGD on least squares; comparison with Adam.]}
 
 \section{Discussion}
 \emph{[Where the bounds are tight, where they are pessimistic, and why.]}
