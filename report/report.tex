@@ -49,7 +49,19 @@ Let $L > 0$. A differentiable function $f : \R^d \to \R$ is \emph{$L$-smooth} if
 \]
 \end{definition}
 
-\emph{[To add: convexity, $\mu$-strong convexity, condition number $\kappa = L/\mu$, Polyak--{\L}ojasiewicz condition.]}
+\begin{definition}[Convexity, strong convexity]
+A differentiable function $f : \R^d \to \R$ is \emph{convex} if
+\[
+f(y) \ge f(x) + \ip{\nabla f(x)}{y - x} \qquad \text{for all } x, y \in \R^d,
+\]
+and, for $\mu > 0$, \emph{$\mu$-strongly convex} if
+\[
+f(y) \ge f(x) + \ip{\nabla f(x)}{y - x} + \frac{\mu}{2}\norm{y - x}^2 \qquad \text{for all } x, y \in \R^d.
+\]
+When $f$ is $L$-smooth and $\mu$-strongly convex, the ratio $\kappa = L/\mu$ is called the \emph{condition number} of $f$.
+\end{definition}
+
+The Polyak--{\L}ojasiewicz condition, a weaker assumption than strong convexity, is introduced in Section~\ref{sec:pl}.
 
 \section{Preliminary results}
 
@@ -171,12 +183,129 @@ Plugging this into the exact expression gives $1 \le r_k \le 2 - \frac{\mu}{L}$.
 The quantity $\ip{g}{Ag}/\norm{g}^2$ is the Rayleigh quotient of $A$ at $g$. The lower bound $r_k = 1$ is attained when $g_k$ is an eigenvector for $L$: the sufficient decrease inequality is then tight. The upper bound $2 - 1/\kappa$ is attained when $g_k$ is an eigenvector for $\mu$. Along gradient descent, the components of $x_k$ along the eigenvector $e_i$ are multiplied by $(1 - \lambda_i/L)$ at each step, so the slowest direction (eigenvalue $\mu$) dominates for large $k$, and one expects $r_k \to 2 - 1/\kappa$. This is what we observe numerically (Section~\ref{sec:experiments}).
 \end{remark}
 
-\subsection{Convex case}
-\emph{[R1: $f(x_k) - f^\ast \le \dfrac{L\norm{x_0 - x^\ast}^2}{2k}$.]}
-\subsection{Strongly convex case}
-\emph{[R2: $\norm{x_k - x^\ast}^2 \le (1 - 1/\kappa)^k \norm{x_0 - x^\ast}^2$.]}
 \subsection{Polyak--{\L}ojasiewicz condition}\label{sec:pl}
-\emph{[R4: linear rate without convexity.]}
+
+\begin{definition}[Polyak--{\L}ojasiewicz condition]
+Let $f : \R^d \to \R$ be differentiable and bounded from below, with $f^\star = \inf_{x \in \R^d} f(x) > -\infty$. We say that $f$ satisfies the \emph{Polyak--{\L}ojasiewicz (PL) condition} with constant $\mu > 0$ if
+\[
+\frac12 \norm{\nabla f(x)}^2 \ge \mu\,\big(f(x) - f^\star\big) \qquad \text{for all } x \in \R^d .
+\]
+\end{definition}
+
+The PL condition does not require convexity, nor uniqueness of the minimizer: it only says that the gradient cannot be small at a point where $f$ is far from its infimum. When $f$ is $L$-smooth and satisfies the PL condition with constant $\mu$, we set $\kappa = L/\mu$.
+
+\begin{theorem}[Linear convergence under the PL condition]\label{thm:pl}
+Let $f : \R^d \to \R$ be differentiable and $L$-smooth, bounded from below with $f^\star = \inf f > -\infty$, and satisfying the PL condition with constant $\mu > 0$. Then, for any $x_0 \in \R^d$, the gradient descent sequence $x_{k+1} = x_k - \frac1L \nabla f(x_k)$ satisfies, for all $k \ge 0$,
+\[
+f(x_k) - f^\star \le \Big(1 - \frac{1}{\kappa}\Big)^k \big(f(x_0) - f^\star\big).
+\]
+\end{theorem}
+
+\begin{proof}
+We prove the result by induction on $k$. For $k = 0$ there is nothing to prove. Let $k \ge 1$ and assume the bound holds at rank $k-1$. By Corollary~\ref{cor:sufficient} applied at $x = x_{k-1}$,
+\[
+f(x_k) \le f(x_{k-1}) - \frac{1}{2L}\norm{\nabla f(x_{k-1})}^2 .
+\]
+By the PL condition at $x_{k-1}$, $\frac{1}{2L}\norm{\nabla f(x_{k-1})}^2 \ge \frac{\mu}{L}\big(f(x_{k-1}) - f^\star\big)$. Subtracting $f^\star$ from both sides, we obtain
+\[
+f(x_k) - f^\star \le \big(f(x_{k-1}) - f^\star\big) - \frac{\mu}{L}\big(f(x_{k-1}) - f^\star\big) = \Big(1 - \frac{1}{\kappa}\Big)\big(f(x_{k-1}) - f^\star\big).
+\]
+Since $1 - 1/\kappa \ge 0$ (see Remark~\ref{rem:mu-le-L}), the induction hypothesis gives
+\[
+f(x_k) - f^\star \le \Big(1 - \frac{1}{\kappa}\Big)\Big(1 - \frac{1}{\kappa}\Big)^{k-1}\big(f(x_0) - f^\star\big) = \Big(1 - \frac{1}{\kappa}\Big)^k \big(f(x_0) - f^\star\big). \qedhere
+\]
+\end{proof}
+
+\begin{remark}\label{rem:mu-le-L}
+Necessarily $\mu \le L$, so that $0 \le 1 - 1/\kappa < 1$. Indeed, for any $x \in \R^d$, Corollary~\ref{cor:sufficient} gives $f^\star \le f(x^+) \le f(x) - \frac{1}{2L}\norm{\nabla f(x)}^2$, hence $\frac{1}{2L}\norm{\nabla f(x)}^2 \le f(x) - f^\star$. Combined with the PL condition, $\frac{\mu}{L}\big(f(x) - f^\star\big) \le f(x) - f^\star$, which yields $\mu \le L$ as soon as $f(x) > f^\star$ for some $x$ (otherwise $f$ is constant and the result is trivial).
+\end{remark}
+
+\begin{remark}
+The proof only combines the sufficient decrease of Corollary~\ref{cor:sufficient} with the PL inequality: convexity is never used. In particular, Theorem~\ref{thm:pl} applies to some non-convex functions, such as $x \mapsto x^2 + 3\sin^2(x)$. Moreover, strongly convex functions satisfy the PL condition (Lemma~\ref{lem:sc-pl}), so that Theorem~\ref{thm:pl} also covers the strongly convex case (Section~\ref{sec:sc}).
+\end{remark}
+
+\subsection{Strongly convex case}\label{sec:sc}
+
+\begin{lemma}[Strong convexity implies PL]\label{lem:sc-pl}
+Let $f : \R^d \to \R$ be differentiable and $\mu$-strongly convex. Then $f$ is bounded from below, and it satisfies the PL condition with the same constant $\mu$:
+\[
+\frac12 \norm{\nabla f(x)}^2 \ge \mu\,\big(f(x) - f^\star\big) \qquad \text{for all } x \in \R^d.
+\]
+\end{lemma}
+
+\begin{proof}
+Fix $x \in \R^d$. By strong convexity, for all $y \in \R^d$,
+\[
+f(y) \ge \varphi(y) := f(x) + \ip{\nabla f(x)}{y - x} + \frac{\mu}{2}\norm{y - x}^2 .
+\]
+The function $\varphi$ is a strictly convex quadratic function of $y$, whose gradient $\nabla\varphi(y) = \nabla f(x) + \mu(y - x)$ vanishes at $y^\ast = x - \frac{1}{\mu}\nabla f(x)$; hence $y^\ast$ is its global minimizer, and
+\[
+\min_{y \in \R^d} \varphi(y) = \varphi(y^\ast) = f(x) - \frac{1}{\mu}\norm{\nabla f(x)}^2 + \frac{\mu}{2}\cdot\frac{1}{\mu^2}\norm{\nabla f(x)}^2 = f(x) - \frac{1}{2\mu}\norm{\nabla f(x)}^2 .
+\]
+Therefore $f(y) \ge f(x) - \frac{1}{2\mu}\norm{\nabla f(x)}^2$ for all $y$: the right-hand side does not depend on $y$, so $f$ is bounded from below, and taking the infimum over $y$ gives
+\[
+f^\star = \inf_{y \in \R^d} f(y) \ge f(x) - \frac{1}{2\mu}\norm{\nabla f(x)}^2 ,
+\]
+which is the PL inequality after rearranging.
+\end{proof}
+
+\begin{corollary}[Strongly convex case]\label{cor:sc-rate}
+Let $f : \R^d \to \R$ be $L$-smooth and $\mu$-strongly convex, and $\kappa = L/\mu$. Then gradient descent with step size $1/L$ satisfies, for all $k \ge 0$,
+\[
+f(x_k) - f^\star \le \Big(1 - \frac{1}{\kappa}\Big)^k \big(f(x_0) - f^\star\big).
+\]
+\end{corollary}
+
+\begin{proof}
+By Lemma~\ref{lem:sc-pl}, $f$ is bounded from below and satisfies the PL condition with constant $\mu$; apply Theorem~\ref{thm:pl}.
+\end{proof}
+
+This is the bound displayed in Figure~\ref{fig:gap}.
+
+\emph{[Optional: linear convergence of the iterates, $\norm{x_k - x^\ast}^2 \le (1 - 1/\kappa)^k \norm{x_0 - x^\ast}^2$.]}
+
+\subsection{Convex case}\label{sec:convex}
+
+Without strong convexity (or the PL condition), linear convergence is lost in general, but gradient descent still converges at a sublinear rate, provided the infimum is attained.
+
+\begin{theorem}[Sublinear convergence in the convex case]\label{thm:convex}
+Let $f : \R^d \to \R$ be differentiable, convex and $L$-smooth, and assume that $f$ has a minimizer $x^\star$, with $f^\star = f(x^\star)$. Then, for any $x_0 \in \R^d$, the gradient descent sequence $x_{k+1} = x_k - \frac1L \nabla f(x_k)$ satisfies, for all $k \ge 1$,
+\[
+f(x_k) - f^\star \le \frac{L \norm{x_0 - x^\star}^2}{2k} .
+\]
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1: one-step inequality.} Let $i \ge 1$ and write $g = \nabla f(x_{i-1})$, so that $x_i = x_{i-1} - \frac1L g$. By convexity of $f$, applied at the point $x_{i-1}$ and evaluated at $x^\star$,
+\[
+f^\star \ge f(x_{i-1}) + \ip{g}{x^\star - x_{i-1}}, \qquad\text{i.e.}\qquad f(x_{i-1}) - f^\star \le \ip{g}{x_{i-1} - x^\star}.
+\]
+Together with Corollary~\ref{cor:sufficient}, which gives $f(x_i) - f(x_{i-1}) \le -\frac{1}{2L}\norm{g}^2$, we get
+\[
+f(x_i) - f^\star = \big(f(x_i) - f(x_{i-1})\big) + \big(f(x_{i-1}) - f^\star\big)
+\le \ip{g}{x_{i-1} - x^\star} - \frac{1}{2L}\norm{g}^2
+= \Big\langle g,\; x_{i-1} - \frac{1}{2L} g - x^\star \Big\rangle .
+\]
+Since $\frac1L g = x_{i-1} - x_i$, we have $x_{i-1} - \frac{1}{2L}g - x^\star = \frac12 (x_{i-1} - x^\star) + \frac12 (x_i - x^\star)$ and $g = L\,(x_{i-1} - x_i) = L\big((x_{i-1} - x^\star) - (x_i - x^\star)\big)$. Hence
+\[
+f(x_i) - f^\star \le \frac{L}{2}\Big\langle (x_{i-1} - x^\star) - (x_i - x^\star),\; (x_{i-1} - x^\star) + (x_i - x^\star) \Big\rangle
+= \frac{L}{2}\Big(\norm{x_{i-1} - x^\star}^2 - \norm{x_i - x^\star}^2\Big).
+\]
+
+\emph{Step 2: summation.} Let $k \ge 1$. Summing the previous inequality for $i = 1, \dots, k$, the right-hand side telescopes:
+\[
+\sum_{i=1}^{k} \big(f(x_i) - f^\star\big) \le \frac{L}{2}\Big(\norm{x_0 - x^\star}^2 - \norm{x_k - x^\star}^2\Big) \le \frac{L}{2}\norm{x_0 - x^\star}^2 .
+\]
+By Corollary~\ref{cor:sufficient}, the sequence $\big(f(x_i)\big)_{i \ge 0}$ is non-increasing, so $f(x_i) \ge f(x_k)$ for all $i \in \{1, \dots, k\}$. Therefore
+\[
+k\,\big(f(x_k) - f^\star\big) \le \sum_{i=1}^{k} \big(f(x_i) - f^\star\big) \le \frac{L}{2}\norm{x_0 - x^\star}^2 ,
+\]
+and dividing by $k$ gives the result.
+\end{proof}
+
+\begin{remark}
+Step~1 also shows that $\norm{x_i - x^\star} \le \norm{x_{i-1} - x^\star}$, since its left-hand side is non-negative: the iterates never move away from any minimizer. Moreover, the bound holds for every minimizer $x^\star$, so $\norm{x_0 - x^\star}$ can be replaced by the distance from $x_0$ to the set of minimizers. Compared with Corollary~\ref{cor:sc-rate}, the rate $O(1/k)$ is much slower than a geometric rate: reaching accuracy $\varepsilon$ requires $O(L\norm{x_0 - x^\star}^2/\varepsilon)$ iterations instead of $O(\kappa \log(1/\varepsilon))$.
+\end{remark}
 
 \section{Nesterov's accelerated gradient}
 \emph{[R3: $O(1/k^2)$ via a Lyapunov function; $(1 - 1/\sqrt{\kappa})^k$ in the strongly convex case; lower bound; ODE interpretation.]}
@@ -204,12 +333,12 @@ For the three values of $\kappa$, the ratio $r_k$ stays in the interval $[1, 2 -
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{../code/figures/fig01b_gap.pdf}
-\caption{Optimality gap $f(x_k) - f^\star$ of gradient descent with step size $1/L$ (logarithmic vertical axis), for $\kappa \in \{10, 100, 1000\}$. Dashed line: upper bound $(1 - 1/\kappa)^k \big(f(x_0) - f^\star\big)$.}
+\caption{Optimality gap $f(x_k) - f^\star$ of gradient descent with step size $1/L$ (logarithmic vertical axis), for $\kappa \in \{10, 100, 1000\}$. Dashed line: upper bound $(1 - 1/\kappa)^k \big(f(x_0) - f^\star\big)$ of Corollary~\ref{cor:sc-rate}.}
 \label{fig:gap}
 \end{figure}
 
 \paragraph{Convergence rate (Figure~\ref{fig:gap}).}
-The measured gap always stays below the bound $(1 - 1/\kappa)^k (f(x_0) - f^\star)$. After a short initial phase, in which the components along large eigenvalues vanish, each curve is a straight line in logarithmic scale: the convergence is linear, and its rate deteriorates as $\kappa$ grows. However, the measured slope is about twice the slope of the bound. Table~\ref{tab:slopes} compares the slope of $\log f(x_k)$, fitted by least squares on the second half of the plotted iterations, with the slope $\log(1 - 1/\kappa)$ of the bound. For instance, for $\kappa = 10$, the gap reaches about $10^{-12}$ after $130$ iterations, while the bound is still of order $4 \times 10^{-4}$.
+The measured gap always stays below the bound $(1 - 1/\kappa)^k (f(x_0) - f^\star)$ of Corollary~\ref{cor:sc-rate} (a quadratic with $A$ positive definite is $\mu$-strongly convex). After a short initial phase, in which the components along large eigenvalues vanish, each curve is a straight line in logarithmic scale: the convergence is linear, and its rate deteriorates as $\kappa$ grows. However, the measured slope is about twice the slope of the bound. Table~\ref{tab:slopes} compares the slope of $\log f(x_k)$, fitted by least squares on the second half of the plotted iterations, with the slope $\log(1 - 1/\kappa)$ of the bound. For instance, for $\kappa = 10$, the gap reaches about $10^{-12}$ after $130$ iterations, while the bound is still of order $4 \times 10^{-4}$.
 
 \begin{table}[ht]
 \centering
