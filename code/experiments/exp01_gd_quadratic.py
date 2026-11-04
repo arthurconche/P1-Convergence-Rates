@@ -6,7 +6,7 @@ sys.path.append(str(CODE_DIR))
 
 import numpy as np
 import matplotlib.pyplot as plt
-from src.functions import A_drawing, quadratic, grad_quad, numerical_grad
+from src.functions import A_drawing, quadratic, grad_quad
 from src.methods import grad_desc
 
 
