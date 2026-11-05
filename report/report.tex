@@ -307,8 +307,108 @@ and dividing by $k$ gives the result.
 Step~1 also shows that $\norm{x_i - x^\star} \le \norm{x_{i-1} - x^\star}$, since its left-hand side is non-negative: the iterates never move away from any minimizer. Moreover, the bound holds for every minimizer $x^\star$, so $\norm{x_0 - x^\star}$ can be replaced by the distance from $x_0$ to the set of minimizers. Compared with Corollary~\ref{cor:sc-rate}, the rate $O(1/k)$ is much slower than a geometric rate: reaching accuracy $\varepsilon$ requires $O(L\norm{x_0 - x^\star}^2/\varepsilon)$ iterations instead of $O(\kappa \log(1/\varepsilon))$.
 \end{remark}
 
-\section{Nesterov's accelerated gradient}
-\emph{[R3: $O(1/k^2)$ via a Lyapunov function; $(1 - 1/\sqrt{\kappa})^k$ in the strongly convex case; lower bound; ODE interpretation.]}
+\section{Nesterov's accelerated gradient}\label{sec:nesterov}
+
+Theorem~\ref{thm:convex} shows that gradient descent reaches accuracy $\varepsilon$ on convex $L$-smooth functions after $O(L\norm{x_0 - x^\star}^2/\varepsilon)$ iterations. Nesterov's accelerated method improves this to $O\big(\sqrt{L/\varepsilon}\,\norm{x_0 - x^\star}\big)$ by adding an extrapolation (momentum) step. Following \cite{daspremont}, we present it in a form with three sequences, which makes the proof by a potential (Lyapunov) function transparent.
+
+\subsection{The convex case}\label{sec:nesterov-convex}
+
+\paragraph{Algorithm.}
+Let $f$ be $L$-smooth and let $x_0 \in \R^d$. Set $z_0 = x_0$ and $A_0 = 0$. For $k \ge 0$:
+\begin{enumerate}
+\item let $a_{k+1} > 0$ be the positive root of $L a^2 - a - A_k = 0$, so that $L\,a_{k+1}^2 = A_k + a_{k+1}$, and set $A_{k+1} = A_k + a_{k+1}$;
+\item $y_k = \dfrac{A_k}{A_{k+1}}\, x_k + \dfrac{a_{k+1}}{A_{k+1}}\, z_k$;
+\item $x_{k+1} = y_k - \dfrac1L \nabla f(y_k)$;
+\item $z_{k+1} = z_k - a_{k+1}\, \nabla f(y_k)$.
+\end{enumerate}
+The point $x_{k+1}$ is obtained by a gradient step with the usual step size $1/L$, but from the extrapolated point $y_k$; the sequence $(z_k)$ accumulates all past gradients with increasing weights. Note that $(A_k)$ is increasing, $A_{k+1} = L\,a_{k+1}^2$, and $A_1 = a_1 = 1/L$ (positive root of $L a^2 = a$).
+
+\begin{theorem}[Accelerated rate in the convex case]\label{thm:nesterov}
+Let $f : \R^d \to \R$ be differentiable, convex and $L$-smooth, with a minimizer $x^\star$ and $f^\star = f(x^\star)$. Then the sequence $(x_k)$ defined above satisfies, for all $k \ge 1$,
+\[
+f(x_k) - f^\star \le \frac{2L\,\norm{x_0 - x^\star}^2}{(k+1)^2} .
+\]
+\end{theorem}
+
+The proof relies on the potential
+\[
+\Phi_k = A_k\,\big(f(x_k) - f^\star\big) + \frac12 \norm{z_k - x^\star}^2 , \qquad k \ge 0 .
+\]
+
+\begin{lemma}[Decrease of the potential]\label{lem:potential}
+Under the assumptions of Theorem~\ref{thm:nesterov}, $\Phi_{k+1} \le \Phi_k$ for all $k \ge 0$.
+\end{lemma}
+
+\begin{proof}
+Let $k \ge 0$ and $g = \nabla f(y_k)$. We split $\Phi_{k+1} - \Phi_k$ into two terms.
+
+\emph{Function values.} Using $A_{k+1} = A_k + a_{k+1}$,
+\begin{align*}
+A_{k+1}\big(f(x_{k+1}) - f^\star\big) - A_k\big(f(x_k) - f^\star\big)
+&= A_k\big(f(x_{k+1}) - f(x_k)\big) + a_{k+1}\big(f(x_{k+1}) - f^\star\big) \\
+&= A_k\big(f(x_{k+1}) - f(y_k) + f(y_k) - f(x_k)\big) + a_{k+1}\big(f(x_{k+1}) - f(y_k) + f(y_k) - f^\star\big).
+\end{align*}
+Since $x_{k+1}$ is a gradient step from $y_k$, Corollary~\ref{cor:sufficient} gives $f(x_{k+1}) - f(y_k) \le -\frac{1}{2L}\norm{g}^2$. By convexity of $f$ at $y_k$, evaluated at $x_k$ and at $x^\star$,
+\[
+f(y_k) - f(x_k) \le \ip{g}{y_k - x_k}, \qquad f(y_k) - f^\star \le \ip{g}{y_k - x^\star}.
+\]
+Hence
+\[
+A_{k+1}\big(f(x_{k+1}) - f^\star\big) - A_k\big(f(x_k) - f^\star\big) \le -\frac{A_{k+1}}{2L}\norm{g}^2 + \Big\langle g,\; A_k(y_k - x_k) + a_{k+1}(y_k - x^\star) \Big\rangle .
+\]
+
+\emph{Distances.} Since $z_{k+1} = z_k - a_{k+1} g$, expanding the square gives
+\[
+\frac12\norm{z_{k+1} - x^\star}^2 - \frac12\norm{z_k - x^\star}^2 = \frac{a_{k+1}^2}{2}\norm{g}^2 - a_{k+1}\ip{g}{z_k - x^\star}.
+\]
+
+\emph{Sum.} Adding the two terms,
+\[
+\Phi_{k+1} - \Phi_k \le \frac{\norm{g}^2}{2}\Big(a_{k+1}^2 - \frac{A_{k+1}}{L}\Big) + \Big\langle g,\; A_k(y_k - x_k) + a_{k+1}(y_k - z_k) \Big\rangle ,
+\]
+where the terms in $x^\star$ have cancelled. The first term vanishes because $L a_{k+1}^2 = A_{k+1}$. For the second one, the definition of $y_k$ gives $A_{k+1} y_k = A_k x_k + a_{k+1} z_k$, hence
+\[
+A_k(y_k - x_k) + a_{k+1}(y_k - z_k) = A_{k+1} y_k - A_k x_k - a_{k+1} z_k = 0 .
+\]
+Therefore $\Phi_{k+1} - \Phi_k \le 0$.
+\end{proof}
+
+\begin{lemma}[Growth of the weights]\label{lem:Ak}
+For all $k \ge 1$, $A_k \ge \dfrac{(k+1)^2}{4L}$.
+\end{lemma}
+
+\begin{proof}
+For $k \ge 0$, $A_{k+1} - A_k = a_{k+1}$, that is $\big(\sqrt{A_{k+1}} + \sqrt{A_k}\big)\big(\sqrt{A_{k+1}} - \sqrt{A_k}\big) = a_{k+1}$. Since $(A_k)$ is increasing and $\sqrt{A_{k+1}} = \sqrt{L}\,a_{k+1}$,
+\[
+\sqrt{A_{k+1}} - \sqrt{A_k} = \frac{a_{k+1}}{\sqrt{A_{k+1}} + \sqrt{A_k}} \ge \frac{a_{k+1}}{2\sqrt{A_{k+1}}} = \frac{1}{2\sqrt L}.
+\]
+The first increment is computed exactly: $\sqrt{A_1} - \sqrt{A_0} = 1/\sqrt{L}$. Hence, for $k \ge 1$, by telescoping,
+\[
+\sqrt{A_k} = \big(\sqrt{A_1} - \sqrt{A_0}\big) + \sum_{j=1}^{k-1}\big(\sqrt{A_{j+1}} - \sqrt{A_j}\big) \ge \frac{1}{\sqrt L} + \frac{k-1}{2\sqrt L} = \frac{k+1}{2\sqrt L},
+\]
+and squaring gives the result.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:nesterov}]
+By Lemma~\ref{lem:potential}, $(\Phi_k)$ is non-increasing, and $\Phi_0 = \frac12\norm{x_0 - x^\star}^2$ since $A_0 = 0$ and $z_0 = x_0$. As the second term of $\Phi_k$ is non-negative, for all $k \ge 0$,
+\[
+A_k\big(f(x_k) - f^\star\big) \le \Phi_k \le \Phi_0 = \frac12\norm{x_0 - x^\star}^2 .
+\]
+For $k \ge 1$, $A_k > 0$; dividing and using Lemma~\ref{lem:Ak},
+\[
+f(x_k) - f^\star \le \frac{\norm{x_0 - x^\star}^2}{2A_k} \le \frac{2L\,\norm{x_0 - x^\star}^2}{(k+1)^2}. \qedhere
+\]
+\end{proof}
+
+\begin{remark}
+The proof uses exactly the same ingredients as Theorem~\ref{thm:convex}, namely the sufficient decrease and the convexity inequality, but combines them through a potential in which the weight $A_k$ grows quadratically. The choice $L a_{k+1}^2 = A_{k+1}$ is precisely what cancels the $\norm{g}^2$ terms, and the definition of $y_k$ is precisely what cancels the inner products. Note also that the lemma does not imply that $\norm{z_k - x^\star}$ decreases, only that it stays bounded by $\norm{x_0 - x^\star}$. Eliminating $z_k$, the method can be rewritten as a gradient step from $x_k$ plus a momentum term proportional to $x_k - x_{k-1}$, which is the form used in our code \cite{daspremont}.
+\end{remark}
+
+\subsection{The strongly convex case}
+\emph{[R3': constant momentum $\beta = (\sqrt\kappa - 1)/(\sqrt\kappa + 1)$ and rate $(1 - 1/\sqrt\kappa)^k$; this is the version implemented in the experiments.]}
+
+\subsection{Lower bound and continuous-time interpretation}
+\emph{[Statement of the $O(1/k^2)$ lower bound for first-order methods (with reference); ODE $\ddot x + \frac3t \dot x + \nabla f(x) = 0$ \cite{su}.]}
 
 \section{Stochastic gradient descent}
 \emph{[R5: constant step size and noise floor; decreasing step size and $O(1/k)$ rate.]}
@@ -374,6 +474,7 @@ On quadratics, the theory correctly predicts the qualitative behaviour of gradie
 \bibitem{bubeck} S.~Bubeck. \emph{Convex Optimization: Algorithms and Complexity}. Foundations and Trends in Machine Learning, 2015.
 \bibitem{nesterov} Y.~Nesterov. \emph{Lectures on Convex Optimization}. Springer, 2nd edition, 2018.
 \bibitem{karimi} H.~Karimi, J.~Nutini and M.~Schmidt. Linear convergence of gradient and proximal-gradient methods under the Polyak--{\L}ojasiewicz condition. \emph{ECML PKDD}, 2016.
+\bibitem{daspremont} A.~d'Aspremont, D.~Scieur and A.~Taylor. \emph{Acceleration Methods}. Foundations and Trends in Optimization, 2021.
 \bibitem{su} W.~Su, S.~Boyd and E.~J.~Cand\`es. A differential equation for modeling Nesterov's accelerated gradient method. \emph{NeurIPS}, 2014.
 \end{thebibliography}
 
