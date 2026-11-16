@@ -53,7 +53,7 @@ def nesterov_vs_gd(kappas, d, mu, rng, n_drawing, eps):
 
             n_iter_nd = int(30*np.sqrt(kappa)+1)
             momentum = (np.sqrt(kappa) -1)/(np.sqrt(kappa)+1)
-            traj_nd = nest_desc(grad_f=grad_f, x0=x0, step=1/L, n_iter=n_iter_nd, momentum=momentum)
+            traj_nd = nest_desc(grad_f=grad_f, x0=x0, L=L, n_iter=n_iter_nd, momentum=momentum)
             dist_nd = np.linalg.norm(traj_nd, axis=1)
             hit_nd = dist_nd <= eps * dist_nd[0]
             assert hit_nd.any()

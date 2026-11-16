@@ -29,13 +29,19 @@
 \maketitle
 
 \begin{abstract}
-This report studies the convergence of first-order optimization methods (gradient descent, Nesterov's accelerated gradient and stochastic gradient descent) for smooth functions. For each method we prove the classical convergence rate under convexity, strong convexity or the Polyak--{\L}ojasiewicz condition, and we compare these theoretical bounds with numerical experiments. \emph{[Draft: to be completed.]}
+This report studies the convergence of gradient descent and of Nesterov's accelerated method for smooth functions. We first prove the classical convergence rates of gradient descent
+with step size $1/L$: a linear rate under the Polyak--{\L}ojasiewicz (PL) condition and for strongly convex functions, and an $O(1/k)$ rate for convex functions. We then prove the $O(1/k^2)$ rate of Nesterov's 
+method in the convex case, and the $(1-1/\sqrt\kappa)^k$ rate in the strongly convex case. In a second part, we compare these bounds with numerical experiments on random quadratic functions. Gradient descent does converge linearly, but about twice as fast
+as the bound predicts: the measured slope is twice the theoretical one, so the gap comes from the bound, not from the method. Nesterov's method needs a number of iterations of order $\sqrt{\kappa}$ to reach a given precision, against $\kappa$ for gradient descent, which matches the theory.
 \end{abstract}
-
 \section{Introduction}
-\emph{[To be written: motivation, question studied, contributions, outline.]}
+First-order methods (gradient descent, Nesterov's method, SGD) are basic tools in optimisation and machine learning. We prove convergence bounds for these methods, which depend on the smoothness constant $L$, the strong convexity constant $\mu$ and the condition number $\kappa = L/\mu$.
+These bounds are worst-case guarantees, so the question we ask is: do they faithfully describe what we observe in practice, or are they too pessimistic?
+We first prove the descent lemma, which is the common thread of the report; we then compare the theoretical results with experiments in which we control $\kappa$ exactly (on random quadratic functions).
 
-\section{Setting and assumptions}
+\paragraph{Outline.} Section~\ref{sec:setting} states the assumptions. Section~\ref{sec:prelim} proves the descent lemma and the sufficient decrease property. Section~\ref{sec:gd} derives the rates of gradient descent: in the quadratic case, under the PL condition, for strongly convex functions and for convex functions. Section~\ref{sec:nesterov} proves the $O(1/k^2)$ rate of Nesterov's method in the convex case and the $(1-1/\sqrt\kappa)^k$ rate in the strongly convex case. Section~\ref{sec:experiments} compares these bounds with numerical experiments.
+
+\section{Setting and assumptions}\label{sec:setting}
 We consider the unconstrained problem
 \[
 \min_{x \in \R^d} f(x),
@@ -63,7 +69,7 @@ When $f$ is $L$-smooth and $\mu$-strongly convex, the ratio $\kappa = L/\mu$ is 
 
 The Polyak--{\L}ojasiewicz condition, a weaker assumption than strong convexity, is introduced in Section~\ref{sec:pl}.
 
-\section{Preliminary results}
+\section{Preliminary results}\label{sec:prelim}
 
 \begin{lemma}[Descent lemma]\label{lem:descent}
 Let $f : \R^d \to \R$ be differentiable and $L$-smooth. Then for all $x, y \in \R^d$,
@@ -92,17 +98,6 @@ By the Cauchy--Schwarz inequality, then $L$-smoothness,
 which gives the result.
 \end{proof}
 
-\begin{remark}
-Convexity is not used in the proof: the descent lemma holds for every $L$-smooth function. This is what allows the analysis of gradient descent for non-convex functions satisfying the Polyak--{\L}ojasiewicz condition (Section~\ref{sec:pl}).
-\end{remark}
-
-\begin{remark}
-Since the Cauchy--Schwarz inequality bounds the absolute value of the integrand, the same argument gives the two-sided bound
-\[
-\left| f(y) - f(x) - \ip{\nabla f(x)}{y - x} \right| \le \frac{L}{2}\norm{y - x}^2 \qquad \text{for all } x, y \in \R^d.
-\]
-\end{remark}
-
 \begin{corollary}[Sufficient decrease]\label{cor:sufficient}
 Let $f : \R^d \to \R$ be differentiable and $L$-smooth. For every $x \in \R^d$, the gradient step $x^+ = x - \frac{1}{L}\nabla f(x)$ satisfies
 \[
@@ -120,10 +115,10 @@ f(x^+) &\le f(x) + \ip{\nabla f(x)}{-\tfrac{1}{L}\nabla f(x)} + \frac{L}{2}\norm
 \end{proof}
 
 \begin{remark}
-In particular, each gradient step with step size $1/L$ decreases $f$, strictly as long as $\nabla f(x) \neq 0$. As for Lemma~\ref{lem:descent}, convexity is not needed. Iterating the inequality along the gradient descent sequence $x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k)$ gives the starting point of all the convergence proofs of Section~4.
+In particular, each gradient step with step size $1/L$ decreases $f$, strictly as long as $\nabla f(x) \neq 0$. Like Lemma~\ref{lem:descent}, this result does not use convexity: it holds for every $L$-smooth function, which is what allows the analysis of non-convex functions satisfying the Polyak--{\L}ojasiewicz condition (Section~\ref{sec:pl}). Iterating the inequality along the gradient descent sequence $x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k)$ gives the starting point of all the convergence proofs of Section~4.
 \end{remark}
 
-\section{Gradient descent}
+\section{Gradient descent}\label{sec:gd}
 Throughout this section, $(x_k)_{k \ge 0}$ denotes the gradient descent sequence with step size $1/L$:
 \[
 x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k), \qquad k \ge 0.
@@ -138,7 +133,7 @@ Then $f$ is $L$-smooth and $\mu$-strongly convex, with $x^\ast = 0$ and $f^\ast 
 \[
 r_k = \frac{f(x_k) - f(x_{k+1})}{\frac{1}{2L}\norm{\nabla f(x_k)}^2} .
 \]
-Corollary~\ref{cor:sufficient} states exactly that $r_k \ge 1$.
+In words, $r_k$ is the ratio between the actual decrease of $f$ at step $k$ and the decrease guaranteed by Corollary~\ref{cor:sufficient}: it is normalized so that this corollary reads exactly $r_k \ge 1$, and $r_k$ close to $1$ means that the guarantee is tight.
 
 \begin{proposition}\label{prop:rk}
 For every $k \ge 0$ such that $x_k \neq 0$,
@@ -220,10 +215,6 @@ f(x_k) - f^\star \le \Big(1 - \frac{1}{\kappa}\Big)\Big(1 - \frac{1}{\kappa}\Big
 Necessarily $\mu \le L$, so that $0 \le 1 - 1/\kappa < 1$. Indeed, for any $x \in \R^d$, Corollary~\ref{cor:sufficient} gives $f^\star \le f(x^+) \le f(x) - \frac{1}{2L}\norm{\nabla f(x)}^2$, hence $\frac{1}{2L}\norm{\nabla f(x)}^2 \le f(x) - f^\star$. Combined with the PL condition, $\frac{\mu}{L}\big(f(x) - f^\star\big) \le f(x) - f^\star$, which yields $\mu \le L$ as soon as $f(x) > f^\star$ for some $x$ (otherwise $f$ is constant and the result is trivial).
 \end{remark}
 
-\begin{remark}
-The proof only combines the sufficient decrease of Corollary~\ref{cor:sufficient} with the PL inequality: convexity is never used. In particular, Theorem~\ref{thm:pl} applies to some non-convex functions, such as $x \mapsto x^2 + 3\sin^2(x)$. Moreover, strongly convex functions satisfy the PL condition (Lemma~\ref{lem:sc-pl}), so that Theorem~\ref{thm:pl} also covers the strongly convex case (Section~\ref{sec:sc}).
-\end{remark}
-
 \subsection{Strongly convex case}\label{sec:sc}
 
 \begin{lemma}[Strong convexity implies PL]\label{lem:sc-pl}
@@ -262,7 +253,10 @@ By Lemma~\ref{lem:sc-pl}, $f$ is bounded from below and satisfies the PL conditi
 
 This is the bound displayed in Figure~\ref{fig:gap}.
 
-\emph{[Optional: linear convergence of the iterates, $\norm{x_k - x^\ast}^2 \le (1 - 1/\kappa)^k \norm{x_0 - x^\ast}^2$.]}
+The iterates themselves also converge linearly. Since $f$ is $\mu$-strongly convex and $\nabla f(x^\star) = 0$ at its minimizer $x^\star$, the strong convexity inequality at $x^\star$ gives $f(x) - f^\star \ge \frac{\mu}{2}\norm{x - x^\star}^2$ for all $x$. Combined with Corollary~\ref{cor:sc-rate},
+\[
+\norm{x_k - x^\star}^2 \le \frac{2}{\mu}\big(f(x_k) - f^\star\big) \le \frac{2}{\mu}\Big(1 - \frac{1}{\kappa}\Big)^k \big(f(x_0) - f^\star\big).
+\]
 
 \subsection{Convex case}\label{sec:convex}
 
@@ -304,7 +298,7 @@ and dividing by $k$ gives the result.
 \end{proof}
 
 \begin{remark}
-Step~1 also shows that $\norm{x_i - x^\star} \le \norm{x_{i-1} - x^\star}$, since its left-hand side is non-negative: the iterates never move away from any minimizer. Moreover, the bound holds for every minimizer $x^\star$, so $\norm{x_0 - x^\star}$ can be replaced by the distance from $x_0$ to the set of minimizers. Compared with Corollary~\ref{cor:sc-rate}, the rate $O(1/k)$ is much slower than a geometric rate: reaching accuracy $\varepsilon$ requires $O(L\norm{x_0 - x^\star}^2/\varepsilon)$ iterations instead of $O(\kappa \log(1/\varepsilon))$.
+Step~1 also shows that $\norm{x_i - x^\star} \le \norm{x_{i-1} - x^\star}$, since its left-hand side is non-negative: gradient descent never moves away from any minimizer.
 \end{remark}
 
 \section{Nesterov's accelerated gradient}\label{sec:nesterov}
@@ -346,7 +340,8 @@ Let $k \ge 0$ and $g = \nabla f(y_k)$. We split $\Phi_{k+1} - \Phi_k$ into two t
 \begin{align*}
 A_{k+1}\big(f(x_{k+1}) - f^\star\big) - A_k\big(f(x_k) - f^\star\big)
 &= A_k\big(f(x_{k+1}) - f(x_k)\big) + a_{k+1}\big(f(x_{k+1}) - f^\star\big) \\
-&= A_k\big(f(x_{k+1}) - f(y_k) + f(y_k) - f(x_k)\big) + a_{k+1}\big(f(x_{k+1}) - f(y_k) + f(y_k) - f^\star\big).
+&= A_k\big(f(x_{k+1}) - f(y_k) + f(y_k) - f(x_k)\big) \\
+&\quad + a_{k+1}\big(f(x_{k+1}) - f(y_k) + f(y_k) - f^\star\big).
 \end{align*}
 Since $x_{k+1}$ is a gradient step from $y_k$, Corollary~\ref{cor:sufficient} gives $f(x_{k+1}) - f(y_k) \le -\frac{1}{2L}\norm{g}^2$. By convexity of $f$ at $y_k$, evaluated at $x_k$ and at $x^\star$,
 \[
@@ -401,17 +396,142 @@ f(x_k) - f^\star \le \frac{\norm{x_0 - x^\star}^2}{2A_k} \le \frac{2L\,\norm{x_0
 \end{proof}
 
 \begin{remark}
-The proof uses exactly the same ingredients as Theorem~\ref{thm:convex}, namely the sufficient decrease and the convexity inequality, but combines them through a potential in which the weight $A_k$ grows quadratically. The choice $L a_{k+1}^2 = A_{k+1}$ is precisely what cancels the $\norm{g}^2$ terms, and the definition of $y_k$ is precisely what cancels the inner products. Note also that the lemma does not imply that $\norm{z_k - x^\star}$ decreases, only that it stays bounded by $\norm{x_0 - x^\star}$. Eliminating $z_k$, the method can be rewritten as a gradient step from $x_k$ plus a momentum term proportional to $x_k - x_{k-1}$, which is the form used in our code \cite{daspremont}.
+The proof uses the same ingredients as Theorem~\ref{thm:convex} (sufficient decrease and convexity), but combines them through a potential whose weight $A_k$ grows quadratically, which is what turns the $O(1/k)$ rate into $O(1/k^2)$. Note that it does not imply that $\norm{z_k - x^\star}$ decreases, only that it stays bounded by $\norm{x_0 - x^\star}$.
 \end{remark}
 
-\subsection{The strongly convex case}
-\emph{[R3': constant momentum $\beta = (\sqrt\kappa - 1)/(\sqrt\kappa + 1)$ and rate $(1 - 1/\sqrt\kappa)^k$; this is the version implemented in the experiments.]}
+\subsection{The strongly convex case}\label{sec:nesterov-sc}
 
-\subsection{Lower bound and continuous-time interpretation}
-\emph{[Statement of the $O(1/k^2)$ lower bound for first-order methods (with reference); ODE $\ddot x + \frac3t \dot x + \nabla f(x) = 0$ \cite{su}.]}
+When $f$ is $\mu$-strongly convex, the growing weights $A_k$ can be replaced by constant parameters, and the rate becomes linear. This is the version implemented in the experiments of Section~\ref{sec:exp-nesterov}.
 
-\section{Stochastic gradient descent}
-\emph{[R5: constant step size and noise floor; decreasing step size and $O(1/k)$ rate.]}
+\paragraph{Algorithm.}
+Let $f$ be $L$-smooth and $\mu$-strongly convex, $\kappa = L/\mu$, and set
+\[
+\tau = \frac{1}{1+\sqrt\kappa}, \qquad \delta = \frac{1}{\sqrt\kappa}, \qquad \beta = \frac{\sqrt\kappa - 1}{\sqrt\kappa + 1}.
+\]
+Let $x_0 \in \R^d$ and $z_0 = x_0$. For $k \ge 0$:
+\begin{enumerate}
+\item $y_k = (1-\tau)\,x_k + \tau\, z_k$;
+\item $x_{k+1} = y_k - \dfrac1L \nabla f(y_k)$;
+\item $z_{k+1} = (1-\delta)\,z_k + \delta\Big(y_k - \dfrac1\mu \nabla f(y_k)\Big)$.
+\end{enumerate}
+By Remark~\ref{rem:mu-le-L}, $\kappa \ge 1$, so $\tau \in (0, \frac12]$ and $\delta \in (0,1]$.
+
+\begin{lemma}[Constant momentum form]\label{lem:momentum}
+With the convention $x_{-1} = x_0$, the sequence $(y_k)$ satisfies, for all $k \ge 0$,
+\[
+y_k = x_k + \beta\,(x_k - x_{k-1}).
+\]
+\end{lemma}
+
+\begin{proof}
+For $k = 0$, $y_0 = (1-\tau)x_0 + \tau z_0 = x_0$, which is the claim since $x_{-1} = x_0$. If $\kappa = 1$, then $\delta = 1$, $\mu = L$ and $z_{k} = y_{k-1} - \frac1L \nabla f(y_{k-1}) = x_k$ for $k \ge 1$, so $y_k = x_k$ and the claim holds with $\beta = 0$. Assume now $\kappa > 1$ and let $k \ge 1$, $g = \nabla f(y_{k-1})$. Since $x_k = y_{k-1} - \frac1L g$,
+\[
+y_{k-1} - \frac1\mu g = \kappa\Big(\frac1\kappa\, y_{k-1} - \frac1L g\Big) = \kappa\, x_k + (1-\kappa)\, y_{k-1},
+\]
+hence
+\[
+z_k = (1-\delta)\,z_{k-1} + \delta(1-\kappa)\, y_{k-1} + \delta\kappa\, x_k
+= \delta(1-\kappa)\Big(y_{k-1} + \frac{1-\delta}{\delta(1-\kappa)}\, z_{k-1}\Big) + \delta\kappa\, x_k .
+\]
+Now
+\[
+\frac{1-\delta}{\delta(1-\kappa)} = \frac{\sqrt\kappa - 1}{1-\kappa} = \frac{\sqrt\kappa - 1}{(1-\sqrt\kappa)(1+\sqrt\kappa)} = -\tau ,
+\]
+and $y_{k-1} - \tau z_{k-1} = (1-\tau)\,x_{k-1}$ by definition of $y_{k-1}$. Therefore
+\[
+z_k = \delta(1-\kappa)(1-\tau)\, x_{k-1} + \delta\kappa\, x_k .
+\]
+Injecting this into the definition of $y_k$,
+\[
+y_k = (1-\tau)\,x_k + \tau z_k = x_k + (\tau\delta\kappa - \tau)\, x_k + \tau\delta(1-\kappa)(1-\tau)\, x_{k-1}.
+\]
+Finally,
+\[
+\tau\delta\kappa - \tau = \frac{1}{1+\sqrt\kappa}\Big(\frac{\kappa}{\sqrt\kappa} - 1\Big) = \frac{\sqrt\kappa - 1}{\sqrt\kappa + 1} = \beta,
+\]
+\[
+\tau\delta(1-\kappa)(1-\tau) = \frac{(1-\sqrt\kappa)(1+\sqrt\kappa)}{(1+\sqrt\kappa)\sqrt\kappa}\cdot\frac{\sqrt\kappa}{1+\sqrt\kappa} = \frac{1-\sqrt\kappa}{1+\sqrt\kappa} = -\beta,
+\]
+which gives $y_k = x_k + \beta(x_k - x_{k-1})$.
+\end{proof}
+
+\begin{theorem}[Accelerated rate in the strongly convex case]\label{thm:nesterov-sc}
+Let $f : \R^d \to \R$ be differentiable, $L$-smooth and $\mu$-strongly convex, with minimizer $x^\star$ and $f^\star = f(x^\star)$. Then the sequence $(x_k)$ defined above satisfies, for all $k \ge 0$,
+\[
+f(x_k) - f^\star \le \Big(1 - \frac{1}{\sqrt\kappa}\Big)^k \Big( f(x_0) - f^\star + \frac\mu2 \norm{x_0 - x^\star}^2 \Big).
+\]
+\end{theorem}
+
+The proof relies on the potential
+\[
+\Phi_k = f(x_k) - f^\star + \frac\mu2 \norm{z_k - x^\star}^2 , \qquad k \ge 0 .
+\]
+
+\begin{lemma}[Contraction of the potential]\label{lem:potential-sc}
+Under the assumptions of Theorem~\ref{thm:nesterov-sc}, $\Phi_{k+1} \le (1-\delta)\,\Phi_k$ for all $k \ge 0$.
+\end{lemma}
+
+\begin{proof}
+Let $k \ge 0$ and $g = \nabla f(y_k)$.
+
+\emph{Function values.} We have
+\[
+\Phi_{k+1} - (1-\delta)\Phi_k = f(x_{k+1}) - \delta f^\star - (1-\delta) f(x_k) + \frac\mu2 R_k,
+\qquad R_k = \norm{z_{k+1} - x^\star}^2 - (1-\delta)\norm{z_k - x^\star}^2 .
+\]
+By Corollary~\ref{cor:sufficient}, $f(x_{k+1}) \le f(y_k) - \frac{1}{2L}\norm{g}^2$. It remains to bound $f(y_k)$ by $\delta f^\star + (1-\delta) f(x_k)$. Strong convexity of $f$ at $y_k$, evaluated at $x^\star$, and convexity evaluated at $x_k$ give
+\[
+f^\star \ge f(y_k) + \ip{g}{x^\star - y_k} + \frac\mu2\norm{x^\star - y_k}^2,
+\qquad
+f(x_k) \ge f(y_k) + \ip{g}{x_k - y_k}.
+\]
+Multiplying the first inequality by $\delta$ and the second by $1-\delta \ge 0$ and adding,
+\[
+f(y_k) \le \delta f^\star + (1-\delta) f(x_k) - \delta\ip{g}{x^\star - y_k} - \frac{\delta\mu}{2}\norm{x^\star - y_k}^2 - (1-\delta)\ip{g}{x_k - y_k}.
+\]
+Hence
+\[
+\Phi_{k+1} - (1-\delta)\Phi_k \le -\frac{1}{2L}\norm{g}^2 - \delta\ip{g}{x^\star - y_k} - \frac{\delta\mu}{2}\norm{x^\star - y_k}^2 - (1-\delta)\ip{g}{x_k - y_k} + \frac\mu2 R_k .
+\]
+
+\emph{Distances.} For $a, b \in \R^d$ and $t \in \R$, expanding the squares gives the identity
+\[
+\norm{(1-t)a + tb}^2 = (1-t)\norm{a}^2 + t\norm{b}^2 - t(1-t)\norm{a - b}^2 .
+\]
+We apply it with $t = \delta$, $a = z_k - x^\star$ and $b = y_k - \frac1\mu g - x^\star$, so that $(1-\delta)a + \delta b = z_{k+1} - x^\star$ and $a - b = z_k - y_k + \frac1\mu g$:
+\begin{align*}
+R_k &= \delta\,\Big\|y_k - x^\star - \frac1\mu g\Big\|^2 - \delta(1-\delta)\,\Big\|z_k - y_k + \frac1\mu g\Big\|^2 \\
+&= \delta\norm{y_k - x^\star}^2 + \frac{\delta}{\mu^2}\norm{g}^2 - \frac{2\delta}{\mu}\ip{g}{y_k - x^\star} \\
+&\quad - \delta(1-\delta)\Big(\norm{z_k - y_k}^2 + \frac{1}{\mu^2}\norm{g}^2 + \frac2\mu\ip{g}{z_k - y_k}\Big) \\
+&\le \delta\norm{y_k - x^\star}^2 + \frac{\delta^2}{\mu^2}\norm{g}^2 - \frac{2\delta}{\mu}\ip{g}{y_k - x^\star} - \frac{2\delta(1-\delta)}{\mu}\ip{g}{z_k - y_k},
+\end{align*}
+where we dropped $-\delta(1-\delta)\norm{z_k - y_k}^2 \le 0$, since $\delta \in (0,1]$.
+
+\emph{Sum.} Injecting this bound, the terms in $\ip{g}{x^\star - y_k}$ (coefficient $-\delta + \delta$) and in $\norm{x^\star - y_k}^2$ (coefficient $-\frac{\delta\mu}{2} + \frac{\delta\mu}{2}$) cancel, and we get
+\[
+\Phi_{k+1} - (1-\delta)\Phi_k \le \frac{\norm{g}^2}{2}\Big(\frac{\delta^2}{\mu} - \frac1L\Big) - (1-\delta)\,\Big\langle g,\; x_k - y_k + \delta(z_k - y_k)\Big\rangle .
+\]
+The first term vanishes because $\delta^2 = 1/\kappa = \mu/L$. For the second one, the definition of $y_k$ gives $x_k - y_k = \tau(x_k - z_k)$ and $z_k - y_k = (1-\tau)(z_k - x_k)$, hence
+\[
+x_k - y_k + \delta(z_k - y_k) = (\tau - \delta + \delta\tau)(x_k - z_k),
+\]
+and
+\[
+\tau - \delta + \delta\tau = \frac{1}{1+\sqrt\kappa} - \frac{1}{\sqrt\kappa} + \frac{1}{\sqrt\kappa + \kappa} = \frac{\sqrt\kappa - 1 - \sqrt\kappa + 1}{\sqrt\kappa + \kappa} = 0 .
+\]
+Therefore $\Phi_{k+1} - (1-\delta)\Phi_k \le 0$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:nesterov-sc}]
+By Lemma~\ref{lem:potential-sc} and induction, $\Phi_k \le (1-\delta)^k\,\Phi_0$, and $\Phi_0 = f(x_0) - f^\star + \frac\mu2\norm{x_0 - x^\star}^2$ since $z_0 = x_0$. As the second term of $\Phi_k$ is non-negative,
+\[
+f(x_k) - f^\star \le \Phi_k \le \Big(1 - \frac{1}{\sqrt\kappa}\Big)^k \Big( f(x_0) - f^\star + \frac\mu2 \norm{x_0 - x^\star}^2 \Big). \qedhere
+\]
+\end{proof}
+
+\begin{remark}
+Gradient descent contracts by $1 - 1/\kappa$ per iteration (Corollary~\ref{cor:sc-rate}), Nesterov's method by $1 - 1/\sqrt\kappa$. To reach a precision $\varepsilon$, this means of order $\kappa\log(1/\varepsilon)$ iterations against $\sqrt\kappa\log(1/\varepsilon)$, which is what Figure~\ref{fig:nesterov} measures.
+\end{remark}
 
 \section{Numerical experiments}\label{sec:experiments}
 
@@ -427,8 +547,8 @@ We consider the quadratic $f(x) = \frac12 x^\top A x$ of Section~\ref{sec:quadra
 \label{fig:rk}
 \end{figure}
 
-\paragraph{Tightness of the sufficient decrease (Figure~\ref{fig:rk}).}
-For the three values of $\kappa$, the ratio $r_k$ stays in the interval $[1, 2 - 1/\kappa]$ predicted by Proposition~\ref{prop:rk}. It starts at $r_0 \approx 1.25$ for $\kappa = 10$ and $\kappa = 100$, and $r_0 \approx 1.20$ for $\kappa = 1000$: at the first iterations, the guaranteed decrease of Corollary~\ref{cor:sufficient} is close to the actual one. Then $r_k$ increases towards its upper bound: the maximal observed values are $1.8971$, $1.9900$ and $1.9990$, for upper bounds $1.9$, $1.99$ and $1.999$. For $\kappa = 10$, the remaining gap of order $3 \times 10^{-3}$ is due to the eigenvalue $\lambda_2 \approx 1.03$, very close to $\mu$, whose component has not yet vanished when the run is stopped by the threshold $10^{-12}$ (after $130$ iterations). This is the behaviour anticipated in the remark following Proposition~\ref{prop:rk}: the components of $x_k$ along eigenvectors with large eigenvalues are damped quickly, so that $g_k = A x_k$ aligns with the eigenvectors of the smallest eigenvalues, and the Rayleigh quotient $\ip{g_k}{Ag_k}/\norm{g_k}^2$ decreases towards $\mu$. For $\kappa = 1000$, the convergence to $2 - 1/\kappa$ goes through an intermediate regime: the next smallest eigenvalue is $\lambda_2 \approx 6.73$, and the component along its eigenvector only decays by a factor $(1 - \lambda_2/L)/(1 - \mu/L)$ per step relative to the slowest one, that is about $0.57\%$. Accordingly, $r_k \approx 1.992$ at $k = 100$, close to $2 - \lambda_2/L \approx 1.993$, and $r_k$ only reaches $1.9988$ around $k = 1000$. 
+\paragraph{Figure~\ref{fig:rk}.}
+We plot the ratio $r_k$ between the actual decrease $f(x_k) - f(x_{k+1})$ and the decrease $\frac{1}{2L}\norm{\nabla f(x_k)}^2$ guaranteed by Corollary~\ref{cor:sufficient}. In the three cases, the bound $1 \le r_k \le 2 - 1/\kappa$ of Proposition~\ref{prop:rk} is satisfied. At the first iterations, $r_k$ is close to $1$: the decrease of $f$ at each step is barely better than the theoretical guarantee. Then $r_k$ tends to $2 - 1/\kappa$: gradient descent does almost twice as well as guaranteed, because the gradient ends up pointing in the flattest direction (eigenvalue $\mu$).
 
 \begin{figure}[ht]
 \centering
@@ -437,8 +557,8 @@ For the three values of $\kappa$, the ratio $r_k$ stays in the interval $[1, 2 -
 \label{fig:gap}
 \end{figure}
 
-\paragraph{Convergence rate (Figure~\ref{fig:gap}).}
-The measured gap always stays below the bound $(1 - 1/\kappa)^k (f(x_0) - f^\star)$ of Corollary~\ref{cor:sc-rate} (a quadratic with $A$ positive definite is $\mu$-strongly convex). After a short initial phase, in which the components along large eigenvalues vanish, each curve is a straight line in logarithmic scale: the convergence is linear, and its rate deteriorates as $\kappa$ grows. However, the measured slope is about twice the slope of the bound. Table~\ref{tab:slopes} compares the slope of $\log f(x_k)$, fitted by least squares on the second half of the plotted iterations, with the slope $\log(1 - 1/\kappa)$ of the bound. For instance, for $\kappa = 10$, the gap reaches about $10^{-12}$ after $130$ iterations, while the bound is still of order $4 \times 10^{-4}$.
+\paragraph{Figure~\ref{fig:gap}.}
+We plot $f(x_k) - f^\star$ as a function of $k$. In the three cases, the first iterations show a very fast decrease, much faster than the theoretical guarantee; then the convergence slows down and becomes geometric (a straight line with a logarithmic vertical axis). The convergence is therefore linear, with an observed slope about twice that of the bound (Table~\ref{tab:slopes}), and this slope decreases as $\kappa$ grows.
 
 \begin{table}[ht]
 \centering
@@ -455,22 +575,33 @@ $1000$ & $-0.0020$ & $-0.0010$ & $2.00$ \\
 \label{tab:slopes}
 \end{table}
 
-This factor $2$ has a simple heuristic explanation. Writing $x_k = \sum_i c_i^{(k)} e_i$ in an orthonormal eigenbasis of $A$, each component satisfies $c_i^{(k)} = (1 - \lambda_i/L)^k c_i^{(0)}$, so that
-\[
-f(x_k) = \frac12 \sum_{i=1}^d \lambda_i \Big(1 - \frac{\lambda_i}{L}\Big)^{2k} \big(c_i^{(0)}\big)^2 ,
-\]
-which, for large $k$, behaves like $C\,(1 - 1/\kappa)^{2k}$ as soon as $c_1^{(0)} \neq 0$. The exponent $2k$ comes from the fact that $f$ is quadratic in $x$; the general bound, which only uses smoothness and strong convexity, loses this square. A rigorous statement is left for a forthcoming proposition.
-
 \paragraph{Conclusion.}
 On quadratics, the theory correctly predicts the qualitative behaviour of gradient descent: the sufficient decrease holds at every step, the convergence is linear and slows down as $\kappa$ grows. Quantitatively, Proposition~\ref{prop:rk} describes the ratio $r_k$ exactly, whereas the general bound on $f(x_k) - f^\star$ is pessimistic by a factor $2$ in the exponent. Whether this pessimism persists in the worst case over all $L$-smooth and $\mu$-strongly convex functions is a natural question, which can be investigated with performance estimation techniques.
 
-\emph{[Further experiments: logistic regression; non-convex PL example; SGD on least squares; comparison with Adam.]}
+\subsection{Nesterov's method versus gradient descent}\label{sec:exp-nesterov}
 
-\section{Discussion}
-\emph{[Where the bounds are tight, where they are pessimistic, and why.]}
+\paragraph{Setting.}
+We use the same quadratics as in Section~\ref{sec:exp-quadratic} ($d = 100$, $\mu = 1$, $L = \kappa$), for $30$ values of $\kappa$ evenly spaced on a logarithmic scale between $10$ and $10^4$. For each $\kappa$, we compare gradient descent with step size $1/L$ and Nesterov's method with step size $1/L$ and constant momentum $\beta = (\sqrt\kappa - 1)/(\sqrt\kappa + 1)$ (the strongly convex version of Section~\ref{sec:nesterov-sc}), started from the same point. We record the first iteration $k$ such that $\norm{x_k - x^\star} \le \varepsilon \norm{x_0 - x^\star}$ with $\varepsilon = 10^{-8}$, and average over $5$ random draws of $A$ and $x_0$. The figure is produced by the script \texttt{code/experiments/exp02\_nesterov\_vs\_gd.py}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.7\textwidth]{../code/figures/fig02_nesterov_vs_gd.pdf}
+\caption{Number of iterations needed to reach $\norm{x_k - x^\star} \le 10^{-8}\norm{x_0 - x^\star}$ as a function of the condition number $\kappa$ (logarithmic axes), for gradient descent and Nesterov's method. Dashed and dotted lines: reference slopes $\propto \kappa$ and $\propto \sqrt\kappa$. The slopes fitted by least squares are given in the legend.}
+\label{fig:nesterov}
+\end{figure}
+
+\paragraph{Figure~\ref{fig:nesterov}.}
+Both curves are straight lines in log-log scale, so the number of iterations depends on $\kappa$ as a power of $\kappa$. The slope is about $0.5$ for Nesterov's method, hence a number of iterations of order $\kappa^{1/2} = \sqrt\kappa$, and about $1$ for gradient descent, hence of order $\kappa$. Concretely, for $\kappa = 10^4$, Nesterov's method needs about $1.7 \times 10^3$ iterations, against $1.5 \times 10^5$ for gradient descent.
+
+\section{Next steps}\label{sec:next}
+\begin{itemize}
+\item \textbf{Lower bound:} state the $O(1/k^2)$ lower bound for first-order methods, and the continuous-time interpretation $\ddot x + \frac3t \dot x + \nabla f(x) = 0$ of Nesterov's method \cite{su}.
+\item \textbf{Stochastic gradient descent:} noise floor with a constant step size, $O(1/k)$ rate with a decreasing step size.
+\item \textbf{Further experiments:} logistic regression, a non-convex PL example, SGD on least squares.
+\end{itemize}
 
 \section*{Note on the use of AI tools}
-All proofs in this report were written by the author by hand; an AI assistant (Claude, Anthropic) was used to check them (signs, missing assumptions, rigour) and to typeset them in \LaTeX. The code was written by the author, with the assistant used for review and debugging. Parts of the text, in particular the description of the numerical experiments in Section~\ref{sec:experiments}, were drafted with the assistant from the author's results and notes, and then revised by the author.
+All proofs in this report were written by the author by hand; an AI assistant (Claude, Anthropic) was used to check them (signs, missing assumptions, rigour) and to typeset them in \LaTeX. The code was written by the author, with the assistant used for review and debugging. Some passages of the text were drafted or translated into English with the assistant from the author's results and notes, and then revised by the author.
 
 \begin{thebibliography}{9}
 \bibitem{garrigos} G.~Garrigos and R.~M.~Gower. \emph{Handbook of Convergence Theorems for (Stochastic) Gradient Methods}. arXiv:2301.11235, 2023.
