@@ -534,6 +534,8 @@ Gradient descent contracts by $1 - 1/\kappa$ per iteration (Corollary~\ref{cor:s
 \end{remark}
 
 \section{Numerical experiments}\label{sec:experiments}
+The code of all experiments and tests is available at \url{https://github.com/arthurconche/P1-Convergence-Rates}.
+
 
 \subsection{Gradient descent on quadratics}\label{sec:exp-quadratic}
 
@@ -576,7 +578,7 @@ $1000$ & $-0.0020$ & $-0.0010$ & $2.00$ \\
 \end{table}
 
 \paragraph{Conclusion.}
-On quadratics, the theory correctly predicts the qualitative behaviour of gradient descent: the sufficient decrease holds at every step, the convergence is linear and slows down as $\kappa$ grows. Quantitatively, Proposition~\ref{prop:rk} describes the ratio $r_k$ exactly, whereas the general bound on $f(x_k) - f^\star$ is pessimistic by a factor $2$ in the exponent. Whether this pessimism persists in the worst case over all $L$-smooth and $\mu$-strongly convex functions is a natural question, which can be investigated with performance estimation techniques.
+On quadratics, the theory predicts the behaviour of gradient descent well: the sufficient decrease holds at every step, and the convergence is linear and slower when $\kappa$ grows. However, the measured slope is twice the slope of the bound of Corollary~\ref{cor:sc-rate}: the bound is pessimistic by a factor $2$ in the exponent.
 
 \subsection{Nesterov's method versus gradient descent}\label{sec:exp-nesterov}
 
@@ -595,6 +597,7 @@ Both curves are straight lines in log-log scale, so the number of iterations dep
 
 \section{Next steps}\label{sec:next}
 \begin{itemize}
+\item \textbf{Factor 2 for gradient descent:} prove that $\norm{x_{k+1} - x^\star} \le (1 - 1/\kappa)\norm{x_k - x^\star}$, which gives the rate $(1-1/\kappa)^{2k}$ observed in Table~\ref{tab:slopes}.
 \item \textbf{Lower bound:} state the $O(1/k^2)$ lower bound for first-order methods, and the continuous-time interpretation $\ddot x + \frac3t \dot x + \nabla f(x) = 0$ of Nesterov's method \cite{su}.
 \item \textbf{Stochastic gradient descent:} noise floor with a constant step size, $O(1/k)$ rate with a decreasing step size.
 \item \textbf{Further experiments:} logistic regression, a non-convex PL example, SGD on least squares.
