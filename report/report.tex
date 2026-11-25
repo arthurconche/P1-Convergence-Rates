@@ -595,9 +595,39 @@ We use the same quadratics as in Section~\ref{sec:exp-quadratic} ($d = 100$, $\m
 \paragraph{Figure~\ref{fig:nesterov}.}
 Both curves are straight lines in log-log scale, so the number of iterations depends on $\kappa$ as a power of $\kappa$. The slope is about $0.5$ for Nesterov's method, hence a number of iterations of order $\kappa^{1/2} = \sqrt\kappa$, and about $1$ for gradient descent, hence of order $\kappa$. Concretely, for $\kappa = 10^4$, Nesterov's method needs about $1.7 \times 10^3$ iterations, against $1.5 \times 10^5$ for gradient descent.
 
+\subsection{Nesterov's method versus its bound}\label{sec:exp-nesterov-bound}
+
+\paragraph{Setting.}
+We use the same quadratics ($d = 100$, $\mu = 1$, $L = \kappa$) for $\kappa \in \{10, 100, 1000\}$, and run Nesterov's method in the three-sequence form of Section~\ref{sec:nesterov-sc} (equivalent to the constant momentum form by Lemma~\ref{lem:momentum}) for $30\sqrt\kappa$ iterations. We record $f(x_k) - f^\star$ and the potential $\Phi_k$, and compare them with the bound $(1 - 1/\sqrt\kappa)^k\,\Phi_0$ of Theorem~\ref{thm:nesterov-sc}. As in Table~\ref{tab:slopes}, the slope of $\log\big(f(x_k) - f^\star\big)$ is fitted by least squares over all iterations. The figure is produced by the script \texttt{code/experiments/exp03\_nesterov\_bound.py}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{../code/figures/fig03_nesterov_bound.pdf}
+\caption{Nesterov's method on random quadratics: $f(x_k) - f^\star$, potential $\Phi_k$, and the bound $(1 - 1/\sqrt\kappa)^k\,\Phi_0$ of Theorem~\ref{thm:nesterov-sc} (logarithmic vertical axis).}
+\label{fig:nesterov-bound}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{cccc}
+\hline
+$\kappa$ & measured slope & $\log(1 - 1/\sqrt\kappa)$ & ratio \\
+\hline
+$10$ & $-0.7656$ & $-0.3801$ & $2.01$ \\
+$100$ & $-0.1988$ & $-0.1054$ & $1.89$ \\
+$1000$ & $-0.0629$ & $-0.0321$ & $1.96$ \\
+\hline
+\end{tabular}
+\caption{Slope of $\log\big(f(x_k) - f^\star\big)$ for Nesterov's method, compared with the slope of the bound of Theorem~\ref{thm:nesterov-sc}.}
+\label{tab:slopes-nesterov}
+\end{table}
+
+\paragraph{Figure~\ref{fig:nesterov-bound}.}
+For the three values of $\kappa$, the curves of $f(x_k) - f^\star$ and of $\Phi_k$ coincide very well, and the slope of these curves in log scale is twice the slope of the upper bound (Table~\ref{tab:slopes-nesterov}). We also observe that for $\kappa = 1000$, $f(x_k) - f^\star$ jumps up and down. This is not the case for $\Phi_k$: Lemma~\ref{lem:potential-sc} guarantees that $\Phi_k$ decreases at every step, whereas nothing of the kind is proved for $f(x_k) - f^\star$. Finally, this is the same factor $2$ as for gradient descent (Table~\ref{tab:slopes}): both bounds are pessimistic in the same way.
+
 \section{Next steps}\label{sec:next}
 \begin{itemize}
-\item \textbf{Factor 2 for gradient descent:} prove that $\norm{x_{k+1} - x^\star} \le (1 - 1/\kappa)\norm{x_k - x^\star}$, which gives the rate $(1-1/\kappa)^{2k}$ observed in Table~\ref{tab:slopes}.
+\item \textbf{Factor 2 in the exponent:} for gradient descent, prove that $\norm{x_{k+1} - x^\star} \le (1 - 1/\kappa)\norm{x_k - x^\star}$, which gives the rate $(1-1/\kappa)^{2k}$ observed in Table~\ref{tab:slopes}; understand whether the same factor $2$ observed for Nesterov's method (Table~\ref{tab:slopes-nesterov}) can be proved, i.e.\ whether the rate is $(1-1/\sqrt\kappa)^{2k}$.
 \item \textbf{Lower bound:} state the $O(1/k^2)$ lower bound for first-order methods, and the continuous-time interpretation $\ddot x + \frac3t \dot x + \nabla f(x) = 0$ of Nesterov's method \cite{su}.
 \item \textbf{Stochastic gradient descent:} noise floor with a constant step size, $O(1/k)$ rate with a decreasing step size.
 \item \textbf{Further experiments:} logistic regression, a non-convex PL example, SGD on least squares.

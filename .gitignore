@@ -6,3 +6,5 @@ report/*.log
 report/*.out
 report/*.fls
 report/*.fdb_latexmk
+*.synctex.gz
+.pytest_cache/
