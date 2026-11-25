@@ -23,16 +23,16 @@
 
 \title{Convergence Rates of First-Order Methods:\\ Proofs and Numerical Experiments}
 \author{Arthur Conche\\ M2 MMAS, Universit\'e Paris Cit\'e}
-\date{Working draft --- \today}
+\date{Working draft - \today}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
 This report studies the convergence of gradient descent and of Nesterov's accelerated method for smooth functions. We first prove the classical convergence rates of gradient descent
-with step size $1/L$: a linear rate under the Polyak--{\L}ojasiewicz (PL) condition and for strongly convex functions, and an $O(1/k)$ rate for convex functions. We then prove the $O(1/k^2)$ rate of Nesterov's 
+with step size $1/L$: a linear rate under the Polyak-{\L}ojasiewicz (PL) condition and for strongly convex functions, and an $O(1/k)$ rate for convex functions. We then prove the $O(1/k^2)$ rate of Nesterov's 
 method in the convex case, and the $(1-1/\sqrt\kappa)^k$ rate in the strongly convex case. In a second part, we compare these bounds with numerical experiments on random quadratic functions. Gradient descent does converge linearly, but about twice as fast
-as the bound predicts: the measured slope is twice the theoretical one, so the gap comes from the bound, not from the method. Nesterov's method needs a number of iterations of order $\sqrt{\kappa}$ to reach a given precision, against $\kappa$ for gradient descent, which matches the theory.
+as the bound predicts: the measured slope is twice the theoretical one, so the gap comes from the bound, not from the method. Nesterov's method needs a number of iterations of order $\sqrt{\kappa}$ to reach a given precision, against $\kappa$ for gradient descent, which matches the theory, and the same factor $2$ between the measured slope and the bound appears for Nesterov's method.
 \end{abstract}
 \section{Introduction}
 First-order methods (gradient descent, Nesterov's method, SGD) are basic tools in optimisation and machine learning. We prove convergence bounds for these methods, which depend on the smoothness constant $L$, the strong convexity constant $\mu$ and the condition number $\kappa = L/\mu$.
@@ -67,7 +67,7 @@ f(y) \ge f(x) + \ip{\nabla f(x)}{y - x} + \frac{\mu}{2}\norm{y - x}^2 \qquad \te
 When $f$ is $L$-smooth and $\mu$-strongly convex, the ratio $\kappa = L/\mu$ is called the \emph{condition number} of $f$.
 \end{definition}
 
-The Polyak--{\L}ojasiewicz condition, a weaker assumption than strong convexity, is introduced in Section~\ref{sec:pl}.
+The Polyak-{\L}ojasiewicz condition, a weaker assumption than strong convexity, is introduced in Section~\ref{sec:pl}.
 
 \section{Preliminary results}\label{sec:prelim}
 
@@ -87,7 +87,7 @@ Since $\int_0^1 \ip{\nabla f(x)}{y - x}\, dt = \ip{\nabla f(x)}{y - x}$, we obta
 \[
 f(y) - f(x) - \ip{\nabla f(x)}{y - x} = \int_0^1 \ip{\nabla f(x + t(y-x)) - \nabla f(x)}{y - x} \, dt .
 \]
-By the Cauchy--Schwarz inequality, then $L$-smoothness,
+By the Cauchy-Schwarz inequality, then $L$-smoothness,
 \begin{align*}
 \int_0^1 \ip{\nabla f(x + t(y-x)) - \nabla f(x)}{y - x} \, dt
 &\le \int_0^1 \norm{\nabla f(x + t(y-x)) - \nabla f(x)} \, \norm{y - x} \, dt \\
@@ -115,7 +115,7 @@ f(x^+) &\le f(x) + \ip{\nabla f(x)}{-\tfrac{1}{L}\nabla f(x)} + \frac{L}{2}\norm
 \end{proof}
 
 \begin{remark}
-In particular, each gradient step with step size $1/L$ decreases $f$, strictly as long as $\nabla f(x) \neq 0$. Like Lemma~\ref{lem:descent}, this result does not use convexity: it holds for every $L$-smooth function, which is what allows the analysis of non-convex functions satisfying the Polyak--{\L}ojasiewicz condition (Section~\ref{sec:pl}). Iterating the inequality along the gradient descent sequence $x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k)$ gives the starting point of all the convergence proofs of Section~4.
+In particular, each gradient step with step size $1/L$ decreases $f$, strictly as long as $\nabla f(x) \neq 0$. Like Lemma~\ref{lem:descent}, this result does not use convexity: it holds for every $L$-smooth function, which is what allows the analysis of non-convex functions satisfying the Polyak-{\L}ojasiewicz condition (Section~\ref{sec:pl}). Iterating the inequality along the gradient descent sequence $x_{k+1} = x_k - \frac{1}{L}\nabla f(x_k)$ gives the starting point of all the convergence proofs of Section~4.
 \end{remark}
 
 \section{Gradient descent}\label{sec:gd}
@@ -178,10 +178,10 @@ Plugging this into the exact expression gives $1 \le r_k \le 2 - \frac{\mu}{L}$.
 The quantity $\ip{g}{Ag}/\norm{g}^2$ is the Rayleigh quotient of $A$ at $g$. The lower bound $r_k = 1$ is attained when $g_k$ is an eigenvector for $L$: the sufficient decrease inequality is then tight. The upper bound $2 - 1/\kappa$ is attained when $g_k$ is an eigenvector for $\mu$. Along gradient descent, the components of $x_k$ along the eigenvector $e_i$ are multiplied by $(1 - \lambda_i/L)$ at each step, so the slowest direction (eigenvalue $\mu$) dominates for large $k$, and one expects $r_k \to 2 - 1/\kappa$. This is what we observe numerically (Section~\ref{sec:experiments}).
 \end{remark}
 
-\subsection{Polyak--{\L}ojasiewicz condition}\label{sec:pl}
+\subsection{Polyak-{\L}ojasiewicz condition}\label{sec:pl}
 
-\begin{definition}[Polyak--{\L}ojasiewicz condition]
-Let $f : \R^d \to \R$ be differentiable and bounded from below, with $f^\star = \inf_{x \in \R^d} f(x) > -\infty$. We say that $f$ satisfies the \emph{Polyak--{\L}ojasiewicz (PL) condition} with constant $\mu > 0$ if
+\begin{definition}[Polyak-{\L}ojasiewicz condition]
+Let $f : \R^d \to \R$ be differentiable and bounded from below, with $f^\star = \inf_{x \in \R^d} f(x) > -\infty$. We say that $f$ satisfies the \emph{Polyak-{\L}ojasiewicz (PL) condition} with constant $\mu > 0$ if
 \[
 \frac12 \norm{\nabla f(x)}^2 \ge \mu\,\big(f(x) - f^\star\big) \qquad \text{for all } x \in \R^d .
 \]
