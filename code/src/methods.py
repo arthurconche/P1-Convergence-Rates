@@ -32,7 +32,7 @@ def nest_desc(grad_f, x0, L, n_iter, momentum):
     return xs
 
 def three_sequences(grad_f, x0, L, mu, n_iter):
-    """Return the sequence of the three sequences algorithm iterates in array with shape (n_iter+1,d)"""
+    """Return the sequence of the three sequences algorithm iterates in arrays with shape (n_iter+1,d)"""
 
     # Constantes
     kappa = L/mu
